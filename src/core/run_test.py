@@ -11,7 +11,15 @@ def run(symbol, query,strategy):
     cerebro = bt.Cerebro()  
     
     # add strategy
-    cerebro.addstrategy(strategy)
+    # cerebro.addstrategy(strategy)
+    
+    cerebro.optstrategy(
+        strategy,
+        fast_period=range(1,12,4),
+        slow_period=range(1,26,8),
+        signal_period=range(1,9,5)
+        )
+    
 
     data_feed = pdf.get_data_feed(query)
     cerebro.adddata(data_feed)

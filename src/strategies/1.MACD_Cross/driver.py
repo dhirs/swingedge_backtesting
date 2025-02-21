@@ -4,12 +4,19 @@ import src.core.pandas_data_feed as pdf
 import long_entry,long_exit,short_entry,short_exit
 
 class BaseStrategy(bt.Strategy):
-
+    params = (
+        ('fast_period', 12),
+        ('slow_period', 26),
+        ('signal_period', 9),
+    )
        
     def __init__(self):
         self.counter = 0
         self.order = None
-        self.macd = bt.indicators.MACD(self.data.close)
+        self.macd = bt.indicators.MACD(self.data.close,
+            period_me1=self.params.fast_period,
+            period_me2=self.params.slow_period,
+            period_signal=self.params.signal_period)
         # self.signal = bt.indicators.MACDSignal(self.macd)
         self.strategy_id = 1
         
@@ -18,7 +25,7 @@ class BaseStrategy(bt.Strategy):
         dt = dt or self.data.datetime[0]
         if isinstance(dt, float):
             dt = bt.num2date(dt)
-        print('%s, %s' % (dt.isoformat(), txt))
+        # print('%s, %s' % (dt.isoformat(), txt))
         
     def get_long_entry(self):
       if self.macd.macd[0] > self.macd.signal[0]:
