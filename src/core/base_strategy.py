@@ -1,29 +1,7 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-import backtrader as bt
-import backtrader.analyzers as bta
-import src.core.analyzer as analyzer
-import src.core.pandas_data_feed as pdf
+from abc import ABC, abstractmethod
 
-def run(symbol, query,strategy):
+# Define an abstract class
+class BaseStrategy(ABC):
     
-    # create a "Cerebro" engine instance
-    cerebro = bt.Cerebro()  
-    
-    # add strategy
-    cerebro.addstrategy(strategy)
-
-    # add data
-    data_feed = pdf.get_data_feed(query)
-    cerebro.adddata(data_feed)
-
-    # add analyzers
-    cerebro.addanalyzer(bta.SharpeRatio, _name='sharpe')
-    cerebro.addanalyzer(bta.DrawDown, _name='drawdown')
-    cerebro.addanalyzer(bta.TradeAnalyzer, _name='trades')
-
-    # run strategy
-    results = cerebro.run()
-
-    # collect results
-    analyzer.collect_strategy_stats(symbol, results)
+    def __init__(self, params=None):
+        pass

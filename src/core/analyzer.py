@@ -1,9 +1,12 @@
+import json
           
 def collect_strategy_stats(symbol,results):
       
       sharpe = results[0].analyzers.sharpe.get_analysis()
       drawdown = results[0].analyzers.drawdown.get_analysis()
       trades = results[0].analyzers.trades.get_analysis()
+      
+      print(json.dumps(trades, indent=4, default=str))
 
       print(f'Sharpe Ratio: {sharpe["sharperatio"]}')
       print(f'Max Drawdown: {drawdown["max"]["drawdown"]}')
@@ -22,6 +25,7 @@ def collect_strategy_stats(symbol,results):
       print('*******************************')
       print(f'Total profit: {trades.won.pnl.total}')
       print(f'Total loss: {trades.lost.pnl.total}')
+      print(f'Net profit: {trades.pnl.net.total}')
       print('************Longs***********')
       print(f'Total long trades {trades.long.total}')
       print(f'Total long wins {trades.long.won}')

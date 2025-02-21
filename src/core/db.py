@@ -6,12 +6,12 @@ class Database:
     
     def __init__(self, params=None):
         
-        db_username = 'tsdbadmin'
-        db_password = 'letin1234$Agf'
-        db_url = 'jdbc:postgresql://w25uxmcny6.m8iecjpjs8.tsdb.cloud.timescale.com:30127/tsdb'
-        db_host = 'w25uxmcny6.m8iecjpjs8.tsdb.cloud.timescale.com'
-        db_ = 'tsdb'
-        db_port = 30127
+        db_username = 'postgres'
+        db_password = 'ytu6R5647yadg4@'
+        db_url = 'jdbc:postgresql://13.201.206.183:5432/postgres'
+        db_host = '13.201.206.183'
+        db_ = 'postgres'
+        db_port = 5432
         self.conn = db.connect(
         database=db_,
         user=db_username,
@@ -25,4 +25,10 @@ class Database:
         print(pandas_df)
         return pandas_df
     
-    
+    def update_results(self, data):
+        # data['strategy_id']
+        # data['test_date'] = today
+        # data['symbol'] = 
+        # data['payload'] = 
+        # insert data into backtests table
+        pass
