@@ -1,100 +1,33 @@
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 import backtrader as bt
-import src.core.run_test as test
-import src.core.pandas_data_feed as pdf
-import long_entry,long_exit,short_entry,short_exit
+import src.core.run_test as backtest
+from strategy import BaseStrategy
 
-class BaseStrategy(bt.Strategy):
-    params = (
-        ('fast_period', 12),
-        ('slow_period', 26),
-        ('signal_period', 9),
-    )
-       
-    def __init__(self):
-        self.counter = 0
-        self.order = None
-        self.macd = bt.indicators.MACD(self.data.close,
-            period_me1=self.params.fast_period,
-            period_me2=self.params.slow_period,
-            period_signal=self.params.signal_period)
-        # self.signal = bt.indicators.MACDSignal(self.macd)
-        self.strategy_id = 1
-        
-    def log(self, txt, dt=None):
-        ''' Logging function fot this strategy'''
-        dt = dt or self.data.datetime[0]
-        if isinstance(dt, float):
-            dt = bt.num2date(dt)
-        # print('%s, %s' % (dt.isoformat(), txt))
-        
-    def get_long_entry(self):
-      if self.macd.macd[0] > self.macd.signal[0]:
-        return True
+def get_data_query():
+  query = "select * from one_h_mh where symbol = 'IBM'"
+  return query
     
-    def get_long_exit(self):
-      stop_price = self.execution_price*(0.98)
-      if self.data.close[0] < stop_price:
-        return True
-      
-      target_price = self.execution_price* 1.04
-      if self.data.close[0] >= target_price:
-        return True
+def run_test(symbol,opt_mode=None):      
+
+      cerebro = bt.Cerebro()  
+
+      # set strategy
+      if not opt_mode:
+          cerebro.addstrategy(BaseStrategy)
+      else:
+          cerebro.optstrategy(
+              BaseStrategy,
+              max_loss_p = range(1,4,1),
+              risk_reward = range(1,8,1)        
+      )
+
+      # get data query
+      query = get_data_query()
+                 
+      # run backtest
+      backtest.run(symbol,cerebro,query, opt_mode)
+ 
+if __name__ == "__main__":
     
-    def get_short_entry(self):
-      if self.macd.macd[0] < self.macd.signal[0]:
-        return True
-    
-    def get_short_exit(self):
-      stop_price = self.execution_price * (1.02)
-      if self.data.close[0] > stop_price:
-        return True
-      
-      target_price = self.execution_price* 0.96
-      if self.data.close[0] <= target_price:
-        return True
-      
-
-    def notify_order(self,order):
-
-      if order.status in [order.Completed]:
-        if order.isbuy():
-          self.log('Buy executed at:{}'.format(order.executed.price))
-
-        elif order.issell():
-          self.log('Sell executed at:{}'.format(order.executed.price))
-
-        self.bar_executed = len(self)
-        self.execution_price = order.executed.price
-        # print('Position is {}'.format(self.position))
-        # print('Trade executed at bar {}'.format(self.bar_executed))
-
-      self.order = None
-
-    def next(self):
-        # print(self.order)
-        # print(self.position)
-        # print(len(self))
-        if self.order:
-          return
-        
-        if not self.position:
-          if self.get_long_entry():
-              self.order = self.buy()
-          
-          elif self.get_short_entry():
-              self.order = self.sell()
-        else:
-          if self.position.size > 0:
-              if self.get_long_exit():
-                self.close()
-                
-          elif self.position.size < 0:
-              if self.get_short_exit():
-                self.close()
-                
-
-# execute strategy
-strategy_id = 1
-query = "select * from one_h_mh where symbol = 'IBM'"
-test.run('IBM',query,BaseStrategy)
-
+    run_test('IBM',1)

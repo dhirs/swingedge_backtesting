@@ -21,14 +21,14 @@ class Database:
         
     def get_data_frame(self,query):
         
-        pandas_df = sqlio.read_sql_query(query, self.conn)
-        print(pandas_df)
+        pandas_df = sqlio.read_sql_query(query, self.conn)        
         return pandas_df
     
-    def update_results(self, data):
+    def update_results(self, symbol, data, opt_mode = None):
         # data['strategy_id']
         # data['test_date'] = today
         # data['symbol'] = 
         # data['payload'] = 
         # insert data into backtests table
+        print("all done-------------------------")
         pass
