@@ -19,6 +19,7 @@ def add_analyzers(cerebro):
     cerebro.addanalyzer(bta.DrawDown, _name='drawdown')
     cerebro.addanalyzer(bta.TradeAnalyzer, _name='trades')
     cerebro.addanalyzer(bta.Returns, _name='returns')
+    cerebro.addanalyzer(bta.Transactions, _name='transactions')
 
 def collect_results_opt(results,timeframe):
     par_list = [
@@ -37,6 +38,8 @@ def collect_results_opt(results,timeframe):
             x[0].analyzers.trades.get_analysis()['long']['lost'],
             x[0].analyzers.trades.get_analysis()['short']['won'],
             x[0].analyzers.trades.get_analysis()['short']['lost'],
+            x[0].analyzers.trades.get_analysis()['len'],
+            x[0].analyzers.transactions.get_analysis(),
             timeframe
             ] for x in results]
     df = pd.DataFrame(par_list, columns = ['max_loss_p',                                            
@@ -46,7 +49,7 @@ def collect_results_opt(results,timeframe):
                                            'total_losses','gross_loss',
                                            'long_won','long_lost',
                                            'short_won','short_lost',
-                                           'timeframe'
+                                           'length','transactions','timeframe'
                                            
                                            ])
     
@@ -72,6 +75,8 @@ def collect_results(results,timeframe):
     drawdown = results[0].analyzers.drawdown.get_analysis()
     trades = results[0].analyzers.trades.get_analysis()
     rets = results[0].analyzers.returns.get_analysis()
+    print(trades)
+    exit()
     dict = {"sharpe":[sharpe["sharperatio"]],
                 "drawdown" : [drawdown["max"]["drawdown"]],
                 "return" : [rets['rnorm100']],
