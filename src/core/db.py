@@ -30,5 +30,5 @@ class Database:
         # data['symbol'] = 
         # data['payload'] = 
         # insert data into backtests table
-        print("all done-------------------------")
+        
         pass
