@@ -4,6 +4,7 @@ import pandas as pd
 import src.core.pandas_data_feed as pdf
 from src.core.db import Database as db
 import time
+pd.set_option('display.max_columns',None)
 
 
 # get data
@@ -56,6 +57,11 @@ def collect_results_opt(results,timeframe):
     tail = 5
     
     df['win_ratio'] = df['total_wins'] / (df['total_wins'] + df['total_losses'])
+    # df1 = df[['timeframe','max_loss_p','risk_reward','win_ratio','sharpe','net_pnl','total_wins','total_losses']]
+    # df1  = df1.sort_values(by='net_pnl')
+    # print(df1.tail(5))
+    
+    
     df_pnl_sort = df.sort_values(by='net_pnl').tail(tail)
     
     df_winratio_sort = df.sort_values(by='win_ratio').tail(tail)
@@ -65,8 +71,9 @@ def collect_results_opt(results,timeframe):
     values = [df, df_pnl_sort, df_winratio_sort, df_sharpe_sort]
     
     final_df = dict(zip(keys, values))
-        
+ 
     return final_df
+    # return df1
     
       
        
@@ -75,8 +82,7 @@ def collect_results(results,timeframe):
     drawdown = results[0].analyzers.drawdown.get_analysis()
     trades = results[0].analyzers.trades.get_analysis()
     rets = results[0].analyzers.returns.get_analysis()
-    print(trades)
-    exit()
+    
     dict = {"sharpe":[sharpe["sharperatio"]],
                 "drawdown" : [drawdown["max"]["drawdown"]],
                 "return" : [rets['rnorm100']],
@@ -94,7 +100,7 @@ def collect_results(results,timeframe):
                 "short_wins" : [trades.short.won],
                 "short_losses" : [trades.short.lost],
                 "short_net_revenue" : [trades.short.pnl.total],
-                "timeframe" : timeframe
+                "timeframe" : [timeframe]
                 }
         
     df = pd.DataFrame.from_dict(dict)
@@ -102,18 +108,46 @@ def collect_results(results,timeframe):
     # js = json.dumps(df)
     # print(df.to_json())
     return df
+    
 
 def generate_payload(symbol,metrics,opt_mode):
     strategy = 1
     run_time = time.time()
-    keys = ["symbol", "strategy", "run_time", "metrics"]
-    values = [symbol, strategy, run_time, metrics]
-    payload = dict(zip(keys, values))
-    df = pd.DataFrame.from_dict(payload)
-    return df
+    metrics_json = metrics.to_json(orient="records") 
+    # keys = ["symbol", "strategy", "run_time", "metrics"]
+    # values = [symbol, strategy, run_time, metrics]
+    # payload = dict(zip(keys, values))
+    # for key,value in payload.items():
+    #     print(f"key: {key} | value: {value}")
+    # df = pd.DataFrame.from_dict(payload)
+    # print(df)
+    # return df
+    
+    payload = {
+        "symbol": symbol,
+        "strategy": strategy,
+        "run_time": run_time,
+        "metrics": metrics_json
+    }
+
+
+    metrics_list = json.loads(payload["metrics"]) 
+    df_expanded = pd.DataFrame(metrics_list)
+    df_expanded["symbol"] = payload["symbol"]
+    df_expanded["strategy"] = payload["strategy"]
+    df_expanded["run_time"] = payload["run_time"]
+
+    df_compact = pd.DataFrame([payload])  
+
+    for key,value in payload.items():
+        print(f"key: {key} | value: {value}")
+
+
+
+
 
 def run(symbol,cerebro, query, timeframe, opt_mode):
-    
+    print(__name__,"opt mode: ",opt_mode)
     # add data to cerebro
     data = get_data(query)
     cerebro.adddata(data)
@@ -132,6 +166,7 @@ def run(symbol,cerebro, query, timeframe, opt_mode):
     else:
         metrics = collect_results(results,timeframe)
     
+   
     # generate payload
     payload = generate_payload(symbol, metrics, opt_mode)
     

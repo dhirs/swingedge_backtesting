@@ -35,7 +35,7 @@ def run_test(symbol,timeframe=1, opt_mode=1):
       if opt_mode == 1:
             
             cerebro.optstrategy(BaseStrategy,
-              max_loss_p = range(1,4,1),
+              max_loss_p = range(1,4,1),  ##loss i am willing to accept
               risk_reward = range(1,8,1)
             )
           
@@ -47,18 +47,23 @@ def run_test(symbol,timeframe=1, opt_mode=1):
       query = get_data_query(timeframe,symbol)
                  
       # run backtest
+      print("opt mode: ",opt_mode)
       results = backtest.run(symbol,cerebro,query, timeframe,opt_mode)
       return results
- 
+
+      
 if __name__ == "__main__":
     
     symbol = 'IBM'
-    df_1_h = run_test(symbol,'1h')
-    df_4_h = run_test(symbol,'4h')
-    df_1d = run_test(symbol,'1d')
-       
+    df_1_h = run_test(symbol,'1h',2)
+    df_4_h = run_test(symbol,'4h',2)
+    df_1d = run_test(symbol,'1d',2)
+    
     
     df_final = pd.concat([df_1_h,df_4_h,df_1d])
-    print(df_final)
+    
+    # print(__name__)
+    # print(df_final)
+    
     
     
