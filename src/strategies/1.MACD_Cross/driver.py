@@ -55,12 +55,12 @@ def run_test(symbol,timeframe=1, opt_mode=1):
 if __name__ == "__main__":
     
     symbol = 'IBM'
-    df_1_h = run_test(symbol,'1h',2)
-    df_4_h = run_test(symbol,'4h',2)
-    df_1d = run_test(symbol,'1d',2)
+    df_1_h = run_test(symbol,'1h')
+    # df_4_h = run_test(symbol,'4h',2)
+    # df_1d = run_test(symbol,'1d',2)
     
     
-    df_final = pd.concat([df_1_h,df_4_h,df_1d])
+    # df_final = pd.concat([df_1_h,df_4_h,df_1d])
     
     # print(__name__)
     # print(df_final)

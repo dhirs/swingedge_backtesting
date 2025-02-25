@@ -1,0 +1,73 @@
+{
+    "all_metrics": [
+        {
+            "max_loss_p": 1,
+            "risk_reward": 1,
+            "return": 0.30051292527807993,
+            "drawdown": 0.1972419485169937,
+            "sharpe": -5.240241147453094,
+            "net_pnl": 10.295900000000017,
+            "total_wins": 25,
+            "gross_profit": 73.76580000000001,
+            "total_losses": 41,
+            "gross_loss": -63.469899999999996,
+            "long_won": 9,
+            "long_lost": 19,
+            "short_won": 16,
+            "short_lost": 22,
+            "length": {
+                "total": 281,
+                "average": 4.257575757575758,
+                "max": 19,
+                "min": 1,
+                "won": {
+                    "total": 129,
+                    "average": 5.16,
+                    "max": 13,
+                    "min": 1
+                },
+                "lost": {
+                    "total": 152,
+                    "average": 3.707317073170732,
+                    "max": 19,
+                    "min": 2
+                },
+                "long": {
+                    "total": 129,
+                    "average": 4.607142857142857,
+                    "max": 14,
+                    "min": 2,
+                    "won": {
+                        "total": 62,
+                        "average": 6.888888888888889,
+                        "max": 13,
+                        "min": 2
+                    },
+                    "lost": {
+                        "total": 67,
+                        "average": 3.526315789473684,
+                        "max": 14,
+                        "min": 2
+                    }
+                },
+                "short": {
+                    "total": 152,
+                    "average": 4.0,
+                    "max": 19,
+                    "min": 1,
+                    "won": {
+                        "total": 67,
+                        "average": 4.1875,
+                        "max": 11,
+                        "min": 1
+                    },
+                    "lost": {
+                        "total": 85,
+                        "average": 3.8636363636363638,
+                        "max": 19,
+                        "min": 2
+                    }
+                }
+            },
+            "transactions": {
+                
