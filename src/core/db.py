@@ -24,11 +24,40 @@ class Database:
         pandas_df = sqlio.read_sql_query(query, self.conn)        
         return pandas_df
     
-    def update_results(self, symbol, data, opt_mode = None):
+    def update_results(self,data):
         # data['strategy_id']
         # data['test_date'] = today
         # data['symbol'] = 
         # data['payload'] = 
         # insert data into backtests table
+        print(data)
+        query = """
+        INSERT INTO backtests (test_id, symbol, strategy_id, run_time, payload_all, wins, net_pnl, loses)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (test_id) 
+        DO UPDATE SET 
+            symbol = EXCLUDED.symbol,
+            strategy_id = EXCLUDED.strategy_id,
+            run_time = EXCLUDED.run_time,
+            payload_all = EXCLUDED.payload_all,
+            wins = EXCLUDED.wins,
+            net_pnl = EXCLUDED.net_pnl,
+            loses = EXCLUDED.loses; 
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                cursor.execute(query, (
+                    data[0],   # test_id
+                    data[1],   # symbol
+                    data[2],   # strategy_id
+                    data[3],   # run_time
+                    data[4],   # value_base64 (payload_all)
+                    float(data[5]),   # wins
+                    float(data[6]),   # net_pnl
+                    float(data[7])   # losses
+                ))
+                print("✅ Data inserted successfully!")
+        except Exception as e:
+            print("❌ Error inserting data:", e)
         
-        pass
+        

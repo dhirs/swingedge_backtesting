@@ -1,9 +1,12 @@
 import backtrader.analyzers as bta
 import json
 import pandas as pd
+import numpy as np
 import src.core.pandas_data_feed as pdf
 from src.core.db import Database as db
 import time
+import base64
+from datetime import datetime, timezone
 pd.set_option('display.max_columns',None)
 
 
@@ -23,57 +26,64 @@ def add_analyzers(cerebro):
     cerebro.addanalyzer(bta.Transactions, _name='transactions')
 
 def collect_results_opt(results,timeframe):
+    # par_list = [
+    #         [
+    #         x[0].params.max_loss_p, 
+    #         x[0].params.risk_reward,
+    #         x[0].analyzers.returns.get_analysis()['rnorm100'], 
+    #         x[0].analyzers.drawdown.get_analysis()['max']['drawdown'],
+    #         x[0].analyzers.sharpe.get_analysis()['sharperatio'],
+    #         x[0].analyzers.trades.get_analysis()['pnl']['net']['total'],
+    #         x[0].analyzers.trades.get_analysis()['won']['total'],
+    #         x[0].analyzers.trades.get_analysis()['won']['pnl']['total'],
+    #         x[0].analyzers.trades.get_analysis()['lost']['total'],
+    #         x[0].analyzers.trades.get_analysis()['lost']['pnl']['total'],
+    #         x[0].analyzers.trades.get_analysis()['long']['won'],
+    #         x[0].analyzers.trades.get_analysis()['long']['lost'],
+    #         x[0].analyzers.trades.get_analysis()['short']['won'],
+    #         x[0].analyzers.trades.get_analysis()['short']['lost'],
+    #         x[0].analyzers.trades.get_analysis()['len'],
+    #         x[0].analyzers.transactions.get_analysis(),
+    #         timeframe
+    #         ] for x in results]
+    
     par_list = [
             [
             x[0].params.max_loss_p, 
             x[0].params.risk_reward,
-            x[0].analyzers.returns.get_analysis()['rnorm100'], 
-            x[0].analyzers.drawdown.get_analysis()['max']['drawdown'],
-            x[0].analyzers.sharpe.get_analysis()['sharperatio'],
-            x[0].analyzers.trades.get_analysis()['pnl']['net']['total'],
-            x[0].analyzers.trades.get_analysis()['won']['total'],
-            x[0].analyzers.trades.get_analysis()['won']['pnl']['total'],
-            x[0].analyzers.trades.get_analysis()['lost']['total'],
-            x[0].analyzers.trades.get_analysis()['lost']['pnl']['total'],
-            x[0].analyzers.trades.get_analysis()['long']['won'],
-            x[0].analyzers.trades.get_analysis()['long']['lost'],
-            x[0].analyzers.trades.get_analysis()['short']['won'],
-            x[0].analyzers.trades.get_analysis()['short']['lost'],
-            x[0].analyzers.trades.get_analysis()['len'],
+            x[0].analyzers.returns.get_analysis(), 
+            x[0].analyzers.drawdown.get_analysis(),
+            x[0].analyzers.sharpe.get_analysis(),
+            x[0].analyzers.trades.get_analysis(),
+            x[0].analyzers.trades.get_analysis()['pnl']['net']['total'], ##net pnl
+            x[0].analyzers.trades.get_analysis()['won']['pnl']['total'],  ##total wins
+            x[0].analyzers.trades.get_analysis()['lost']['pnl']['total'],  ##total_losses
             x[0].analyzers.transactions.get_analysis(),
             timeframe
             ] for x in results]
+    
+    # print(par_list)
+    
     df = pd.DataFrame(par_list, columns = ['max_loss_p',                                            
                                            'risk_reward', 
-                                           'return','drawdown','sharpe','net_pnl',
-                                           'total_wins','gross_profit',
-                                           'total_losses','gross_loss',
-                                           'long_won','long_lost',
-                                           'short_won','short_lost',
-                                           'length','transactions','timeframe'
-                                           
+                                           'returns','drawdown','sharpe','trades',
+                                           'net_pnl',
+                                           'total_wins',
+                                           'total_losses',
+                                           'transactions','timeframe'                                      
                                            ])
     
+    # print(df.head())
     tail = 5
     
-    df['win_ratio'] = df['total_wins'] / (df['total_wins'] + df['total_losses'])
-    # df1 = df[['timeframe','max_loss_p','risk_reward','win_ratio','sharpe','net_pnl','total_wins','total_losses']]
-    # df1  = df1.sort_values(by='net_pnl')
-    # print(df1.tail(5))
+    # df['win_ratio'] = df['total_wins'] / (df['total_wins'] + df['total_losses'])
+    df1 = df.sort_values(by='net_pnl').tail(tail)
+    last_row = df1.iloc[-1]
+    pnl = last_row['net_pnl']
+    wins = last_row['total_wins']
+    losses = last_row['total_losses']
+    return  df,pnl,wins,losses
     
-    
-    df_pnl_sort = df.sort_values(by='net_pnl').tail(tail)
-    
-    df_winratio_sort = df.sort_values(by='win_ratio').tail(tail)
-    df_sharpe_sort = df.sort_values(by='sharpe').tail(tail)
-    
-    keys = ["all_metrics", "sort_pnl", "sort_winratio", "sort_sharpe"]
-    values = [df, df_pnl_sort, df_winratio_sort, df_sharpe_sort]
-    
-    final_df = dict(zip(keys, values))
- 
-    return final_df
-    # return df1
     
       
        
@@ -108,39 +118,52 @@ def collect_results(results,timeframe):
     # js = json.dumps(df)
     # print(df.to_json())
     return df
-    
+
 
 def generate_payload(symbol,metrics,opt_mode):
-    strategy = 1
-    run_time = time.time()
-    metrics_json = metrics.to_json(orient="records") 
-    # keys = ["symbol", "strategy", "run_time", "metrics"]
-    # values = [symbol, strategy, run_time, metrics]
-    # payload = dict(zip(keys, values))
-    # for key,value in payload.items():
-    #     print(f"key: {key} | value: {value}")
-    # df = pd.DataFrame.from_dict(payload)
-    # print(df)
-    # return df
-    
-    payload = {
-        "symbol": symbol,
-        "strategy": strategy,
-        "run_time": run_time,
-        "metrics": metrics_json
-    }
+    if opt_mode==1:
+        strategy = 1
+        run_time = datetime.now(timezone.utc)
+        value_json = metrics[0].to_json(orient="records", indent=4)
+        value_base64 = base64.b64encode(value_json.encode()).decode()
+        
+        return [1,symbol,strategy,run_time,value_base64,metrics[1],metrics[2],metrics[3]]
+        # print(value_json)
+        # with open('payload.json',"w",encoding='utf-8') as json_file:
+        #         json_file.write(value_json)
+        
+       
+    else:
+        strategy = 1
+        run_time = time.time()
+        metrics_json = metrics.to_json(orient="records") 
+        # keys = ["symbol", "strategy", "run_time", "metrics"]
+        # values = [symbol, strategy, run_time, metrics]
+        # payload = dict(zip(keys, values))
+        # for key,value in payload.items():
+        #     print(f"key: {key} | value: {value}")
+        # df = pd.DataFrame.from_dict(payload)
+        # print(df)
+        # return df
+        
+        payload = {
+            "symbol": symbol,
+            "strategy": strategy,
+            "run_time": run_time,
+            "metrics": metrics_json
+        }
 
 
-    metrics_list = json.loads(payload["metrics"]) 
-    df_expanded = pd.DataFrame(metrics_list)
-    df_expanded["symbol"] = payload["symbol"]
-    df_expanded["strategy"] = payload["strategy"]
-    df_expanded["run_time"] = payload["run_time"]
+        metrics_list = json.loads(payload["metrics"]) 
+        df_expanded = pd.DataFrame(metrics_list)
+        df_expanded["symbol"] = payload["symbol"]
+        df_expanded["strategy"] = payload["strategy"]
+        df_expanded["run_time"] = payload["run_time"]
 
-    df_compact = pd.DataFrame([payload])  
+        df_compact = pd.DataFrame([payload])  
 
-    for key,value in payload.items():
-        print(f"key: {key} | value: {value}")
+        for key,value in payload.items():
+            print(f"key: {key} | value: {value}")
 
 
 
@@ -159,22 +182,22 @@ def run(symbol,cerebro, query, timeframe, opt_mode):
     results = cerebro.run()
     
     # collect results
-    if opt_mode == 1:
-        
-        metrics = collect_results_opt(results,timeframe)
+    if opt_mode == 1:   
+        df,pnl,wins,losses = collect_results_opt(results,timeframe)
+
         
     else:
         metrics = collect_results(results,timeframe)
     
    
     # generate payload
-    payload = generate_payload(symbol, metrics, opt_mode)
+    info = generate_payload(symbol=symbol, metrics=[df,pnl,wins,losses], opt_mode=opt_mode)
     
     
     # update metrics in db
     database = db()
-    db.update_results(symbol,payload,opt_mode)
+    database.update_results(info)
     
     
-    return payload
+    return info
     
