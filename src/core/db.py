@@ -46,8 +46,8 @@ class Database:
         # insert data into backtests table
         print(data)
         query = """
-        INSERT INTO backtests (test_id, symbol, strategy_id, run_time, payload_all, wins, net_pnl, loses)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO backtests (symbol, strategy_id, run_time, payload_all, wins, net_pnl, loses, opt_params,timeframe)
+        VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (test_id) 
         DO UPDATE SET 
             symbol = EXCLUDED.symbol,
@@ -56,19 +56,22 @@ class Database:
             payload_all = EXCLUDED.payload_all,
             wins = EXCLUDED.wins,
             net_pnl = EXCLUDED.net_pnl,
-            loses = EXCLUDED.loses; 
+            loses = EXCLUDED.loses,
+            opt_params = EXCLUDED.opt_params,
+            timeframe = EXCLUDED.timeframe;
         """
         try:
             with self.conn.cursor() as cursor:
                 cursor.execute(query, (
-                    data[0],   # test_id
-                    data[1],   # symbol
-                    data[2],   # strategy_id
-                    data[3],   # run_time
-                    data[4],   # value_base64 (payload_all)
-                    float(data[5]),   # wins
-                    float(data[6]),   # net_pnl
-                    float(data[7])   # losses
+                    data[0],   # symbol
+                    data[1],   # strategy_id
+                    data[2],   # run_time
+                    data[3],   # value_base64 (payload_all)
+                    float(data[4]),   # wins
+                    float(data[5]),   # net_pnl
+                    float(data[6]),  # losses
+                    data[7],  #opt_params
+                    data[8]   #timeframe
                 ))
                 self.conn.commit()
                 print("✅ Data inserted successfully!")

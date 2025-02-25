@@ -56,8 +56,8 @@ if __name__ == "__main__":
     
     symbol = 'IBM'
     df_1_h = run_test(symbol,'1h')
-    # df_4_h = run_test(symbol,'4h',2)
-    # df_1d = run_test(symbol,'1d',2)
+    # df_4_h = run_test(symbol,'4h')
+    # df_1d = run_test(symbol,'1d')
     
     
     # df_final = pd.concat([df_1_h,df_4_h,df_1d])

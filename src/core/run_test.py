@@ -82,7 +82,13 @@ def collect_results_opt(results,timeframe):
     pnl = last_row['net_pnl']
     wins = last_row['total_wins']
     losses = last_row['total_losses']
-    return  df,pnl,wins,losses
+    
+    opt_param = {'max_loss_p': float(last_row['max_loss_p']),
+                 'risk_reward': float(last_row['risk_reward'])}
+    opt_param_json = json.dumps(opt_param)
+    timeframe = last_row['timeframe']
+    
+    return  df,pnl,wins,losses,opt_param_json,timeframe
     
     
       
@@ -127,7 +133,7 @@ def generate_payload(symbol,metrics,opt_mode):
         value_json = metrics[0].to_json(orient="records", indent=4)
         value_base64 = base64.b64encode(value_json.encode()).decode()
         
-        return [1,symbol,strategy,run_time,value_base64,metrics[1],metrics[2],metrics[3]]
+        return [symbol,strategy,run_time,value_base64,metrics[1],metrics[2],metrics[3],metrics[4],metrics[5]]
         # print(value_json)
         # with open('payload.json',"w",encoding='utf-8') as json_file:
         #         json_file.write(value_json)
@@ -183,7 +189,7 @@ def run(symbol,cerebro, query, timeframe, opt_mode):
     
     # collect results
     if opt_mode == 1:   
-        df,pnl,wins,losses = collect_results_opt(results,timeframe)
+        df,pnl,wins,losses,opt_params,timeframe = collect_results_opt(results,timeframe)
 
         
     else:
@@ -191,7 +197,8 @@ def run(symbol,cerebro, query, timeframe, opt_mode):
     
    
     # generate payload
-    info = generate_payload(symbol=symbol, metrics=[df,pnl,wins,losses], opt_mode=opt_mode)
+    info = generate_payload(symbol=symbol, metrics=[df,pnl,wins,losses,opt_params,timeframe], opt_mode=opt_mode)
+    # print(info)
     
     
     # update metrics in db
