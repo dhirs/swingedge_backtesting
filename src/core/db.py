@@ -1,23 +1,37 @@
-import psycopg2 as db
+import psycopg2 
 import pandas.io.sql as sqlio
+import boto3
+import json
 
+region_name = 'ap-south-1'
+ssm = boto3.client('ssm',region_name=region_name)
 
 class Database:
     
-    def __init__(self, params=None):
+    def __init__(self):
+        self.conn = self.establishConnection()
+    
+    def establishConnection(self):
+        db_config = self.__timescaledb_credentials()
+        try:
+            conn = psycopg2.connect(
+                database=db_config['database'],
+                user=db_config['user'],
+                password=db_config['password'],
+                host=db_config['host'],
+                port=db_config['port'],
+            )
+            print("✅ Connection to the Timescale PostgreSQL established successfully.")
+            return conn
+        except Exception as e:
+            print("❌ Connection to the Timescale PostgreSQL encountered an error: ", e)
+            return None
         
-        db_username = 'postgres'
-        db_password = 'ytu6R5647yadg4@'
-        db_url = 'jdbc:postgresql://13.201.206.183:5432/postgres'
-        db_host = '13.201.206.183'
-        db_ = 'postgres'
-        db_port = 5432
-        self.conn = db.connect(
-        database=db_,
-        user=db_username,
-        password=db_password,
-        host=db_host,
-        port=db_port)
+    
+    def __timescaledb_credentials(self):
+        parameter = ssm.get_parameter(Name='timescaledb_credentials', WithDecryption=True)
+        timescaledb_config = json.loads(parameter['Parameter']['Value'])
+        return timescaledb_config
         
     def get_data_frame(self,query):
         
@@ -56,6 +70,7 @@ class Database:
                     float(data[6]),   # net_pnl
                     float(data[7])   # losses
                 ))
+                self.conn.commit()
                 print("✅ Data inserted successfully!")
         except Exception as e:
             print("❌ Error inserting data:", e)
