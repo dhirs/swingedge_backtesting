@@ -5,6 +5,7 @@ import src.core.run_test as backtest
 from strategy import BaseStrategy
 import pandas as pd
 import json
+from src.core.db import Database as db
 
 def get_data_query(timeframe, symbol):
   if timeframe == '1h':
@@ -27,7 +28,7 @@ def get_data_query(timeframe, symbol):
   query = f"select * from {table_name} where symbol = '{symbol}'"
   return query
     
-def run_test(symbol,timeframe=1, opt_mode=1):      
+def run_loop(symbol,timeframe=1, opt_mode=1):      
 
       cerebro = bt.Cerebro()  
 
@@ -51,19 +52,21 @@ def run_test(symbol,timeframe=1, opt_mode=1):
       results = backtest.run(symbol,cerebro,query, timeframe,opt_mode)
       return results
 
+def run_test(symbol):
+  df_1_h = run_test(symbol,'1h')
+  df_4_h = run_test(symbol,'4h')
+  df_1d = run_test(symbol,'1d')
+  
+  final_info = pd.concact()
+  # update metrics in db
+  database = db()
+  database.update_results(final_info)
       
+
 if __name__ == "__main__":
     
-    symbol = 'IBM'
-    df_1_h = run_test(symbol,'1h')
-    # df_4_h = run_test(symbol,'4h')
-    # df_1d = run_test(symbol,'1d')
-    
-    
-    # df_final = pd.concat([df_1_h,df_4_h,df_1d])
-    
-    # print(__name__)
-    # print(df_final)
+  symbol = 'IBM'
+  run_test(symbol)
     
     
     

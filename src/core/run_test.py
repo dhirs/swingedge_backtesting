@@ -198,13 +198,5 @@ def run(symbol,cerebro, query, timeframe, opt_mode):
    
     # generate payload
     info = generate_payload(symbol=symbol, metrics=[df,pnl,wins,losses,opt_params,timeframe], opt_mode=opt_mode)
-    # print(info)
-    
-    
-    # update metrics in db
-    database = db()
-    database.update_results(info)
-    
-    
     return info
-    
+        
