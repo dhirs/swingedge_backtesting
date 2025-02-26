@@ -48,7 +48,7 @@ class Database:
             return
 
         query = """
-            INSERT INTO backtests (symbol, strategy_id, run_time, payload_all, payload_best)
+            INSERT INTO backtests (symbol, strategy_id, run_time, payload_all, payload_best, opt_params,sort_by,batch_id)
             VALUES %s
             ON CONFLICT (test_id) 
             DO UPDATE SET 
@@ -57,7 +57,9 @@ class Database:
                 run_time = EXCLUDED.run_time,
                 payload_all = EXCLUDED.payload_all,
                 payload_best = EXCLUDED.payload_best,
-                
+                opt_params = EXCLUDED.opt_params,
+                sort_by = EXCLUDED.sort_by,
+                batch_id = EXCLUDED.batch_id
         """
 
        
@@ -65,12 +67,11 @@ class Database:
         data.get('symbol'),
         data.get('strategy_id'),
         data.get('run_time'),
-        data.get('payload_base64'),   
-        float(data.get('wins', 0)),   
-        float(data.get('pnl', 0)),    
-        float(data.get('losses', 0)), 
+        data.get('payload_all_base64'),   
+        data.get('payload_best_base64'),   
         data.get('opt_params'),
-        data.get('timeframe')
+        'pnl',
+        1
         )]
 
 
@@ -83,6 +84,8 @@ class Database:
         except Exception as e:
             self.conn.rollback()  
             print("❌ Error inserting data:", e)
+        finally:
+            self.conn.close()
 
             
             

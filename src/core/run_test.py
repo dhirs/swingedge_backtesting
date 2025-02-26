@@ -118,9 +118,9 @@ def generate_payload(symbol,metrics,opt_mode):
         strategy = 1
         run_time = datetime.now(timezone.utc)
         
-        df_json = metrics['dataframe'][0].to_json(orient="records", indent=4)
+        df_json = metrics['dataframe'][1].to_json(orient="records", indent=4)
         df_base64 = base64.b64encode(df_json.encode()).decode()
-        best_result_json = metrics['dataframe'][1].to_json(orient="records", indent=4)
+        best_result_json = metrics['dataframe'][0].to_json(orient="records", indent=4)
         best_base64 = base64.b64encode(best_result_json.encode()).decode()
         
         
@@ -198,9 +198,10 @@ def getResults(symbol,cerebro, query, timeframe, opt_mode,run_loop_done):
     if(run_loop_done):
         metrics = CompareResults(all_results)
         info = generate_payload(symbol=symbol, metrics=metrics, opt_mode=opt_mode)
-        
-        database = db()
-        database.update_results(info)
+        # for i in info.keys():
+        #     print(i)
+        # database = db()
+        # database.update_results(info)
         
 
 def CompareResults(all_results):
@@ -211,7 +212,7 @@ def CompareResults(all_results):
 
     ##sort by pnl in descending order and fetch the top record
     final_df = raw_df.sort_values(by='net_pnl',ascending=False)
-    top_record = final_df.head(0)
+    top_record = final_df.head(1)
     top_record_dict = final_df.iloc[0].to_dict()  
     
     

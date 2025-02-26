@@ -1,6 +1,6 @@
 import backtrader as bt
 import long_entry,long_exit,short_entry,short_exit
-
+import backtrader.indicators as btind
 
 class BaseStrategy(bt.Strategy):
   
@@ -30,7 +30,11 @@ class BaseStrategy(bt.Strategy):
         # print('%s, %s' % (dt.isoformat(), txt))
         
     def get_long_entry(self):
-      if self.macd.macd[0] > self.macd.signal[0]:
+      macd_cross = btind.CrossOver(self.macd.macd[0],self.macd.signal[0])
+      print(macd_cross)
+      exit()
+      if macd_cross>0:                                 
+      # if self.macd.macd[0] > self.macd.signal[0]:
         if self.macd.macd[0] < 0 and self.macd.signal[0] < 0:
           return True
     
