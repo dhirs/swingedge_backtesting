@@ -28,7 +28,7 @@ def get_data_query(timeframe, symbol):
   query = f"select * from {table_name} where symbol = '{symbol}'"
   return query
     
-def run_loop(symbol,timeframe=1, opt_mode=1):      
+def run_loop(symbol,timeframe=1, opt_mode=1,run_loop_done=False):      
 
       cerebro = bt.Cerebro()  
 
@@ -49,22 +49,33 @@ def run_loop(symbol,timeframe=1, opt_mode=1):
                  
       # run backtest
       print("opt mode: ",opt_mode)
-      results = backtest.run(symbol,cerebro,query, timeframe,opt_mode)
+      results = backtest.getResults(symbol,cerebro,query, timeframe,opt_mode,run_loop_done)
       return results
 
 def run(symbol):
-  df_1_h = run_loop(symbol,'1h')
-  df_4_h = run_loop(symbol,'4h')
+  df_1h = run_loop(symbol,'1h')
+  df_4h = run_loop(symbol,'4h')
   df_1d = run_loop(symbol,'1d')
   
-  dfs = [df_1_h,df_4_h,df_1d]
+  df_dict = {'1h':df_1h,
+             '4h':df_4h,
+             '1d':df_1d}
+  
+  run_loop_done = False
+  count = 0
+  # print(df_1_h)
+  for timeframe,value in df_dict.items():
+    count += 1
+    if count == len(df_dict):
+       run_loop_done = True  
+    run_loop(symbol=symbol,timeframe=timeframe,run_loop_done=run_loop_done)
   
   
   # final_info = pd.concact()
   # # update metrics in db
-  database = db()
-  for info in dfs:
-      database.update_results(info)
+  # database = db()
+  # for info in dfs:
+  #     database.update_results(info)
       
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@ import psycopg2
 import pandas.io.sql as sqlio
 import boto3
 import json
+from psycopg2.extras import execute_values
 
 region_name = 'ap-south-1'
 ssm = boto3.client('ssm',region_name=region_name)
@@ -38,44 +39,53 @@ class Database:
         pandas_df = sqlio.read_sql_query(query, self.conn)        
         return pandas_df
     
-    def update_results(self,data):
-        # data['strategy_id']
-        # data['test_date'] = today
-        # data['symbol'] = 
-        # data['payload'] = 
-        # insert data into backtests table
-        print(data)
+
+    def update_results(self, data):
+        print(data.keys())
+    
+        if not data:
+            print("⚠️ No data provided for insertion.")
+            return
+
         query = """
-        INSERT INTO backtests (symbol, strategy_id, run_time, payload_all, wins, net_pnl, loses, opt_params,timeframe)
-        VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (test_id) 
-        DO UPDATE SET 
-            symbol = EXCLUDED.symbol,
-            strategy_id = EXCLUDED.strategy_id,
-            run_time = EXCLUDED.run_time,
-            payload_all = EXCLUDED.payload_all,
-            wins = EXCLUDED.wins,
-            net_pnl = EXCLUDED.net_pnl,
-            loses = EXCLUDED.loses,
-            opt_params = EXCLUDED.opt_params,
-            timeframe = EXCLUDED.timeframe;
+            INSERT INTO backtests (symbol, strategy_id, run_time, payload_all, wins, net_pnl, loses, opt_params, timeframe)
+            VALUES %s
+            ON CONFLICT (test_id) 
+            DO UPDATE SET 
+                symbol = EXCLUDED.symbol,
+                strategy_id = EXCLUDED.strategy_id,
+                run_time = EXCLUDED.run_time,
+                payload_all = EXCLUDED.payload_all,
+                wins = EXCLUDED.wins,
+                net_pnl = EXCLUDED.net_pnl,
+                loses = EXCLUDED.loses,
+                opt_params = EXCLUDED.opt_params,
+                timeframe = EXCLUDED.timeframe;
         """
+
+       
+        values = [(
+        data.get('symbol'),
+        data.get('strategy_id'),
+        data.get('run_time'),
+        data.get('payload_base64'),   
+        float(data.get('wins', 0)),   
+        float(data.get('pnl', 0)),    
+        float(data.get('losses', 0)), 
+        data.get('opt_params'),
+        data.get('timeframe')
+        )]
+
+
+
         try:
             with self.conn.cursor() as cursor:
-                cursor.execute(query, (
-                    data[0],   # symbol
-                    data[1],   # strategy_id
-                    data[2],   # run_time
-                    data[3],   # value_base64 (payload_all)
-                    float(data[4]),   # wins
-                    float(data[5]),   # net_pnl
-                    float(data[6]),  # losses
-                    data[7],  #opt_params
-                    data[8]   #timeframe
-                ))
+                execute_values(cursor, query, values)
                 self.conn.commit()
-                print("✅ Data inserted successfully!")
+                print(f"✅ Successfully inserted/updated {len(values)} record(s).")
         except Exception as e:
+            self.conn.rollback()  
             print("❌ Error inserting data:", e)
-        
-        
+
+            
+            
