@@ -52,21 +52,25 @@ def run_loop(symbol,timeframe=1, opt_mode=1):
       results = backtest.run(symbol,cerebro,query, timeframe,opt_mode)
       return results
 
-def run_test(symbol):
-  df_1_h = run_test(symbol,'1h')
-  df_4_h = run_test(symbol,'4h')
-  df_1d = run_test(symbol,'1d')
+def run(symbol):
+  df_1_h = run_loop(symbol,'1h')
+  df_4_h = run_loop(symbol,'4h')
+  df_1d = run_loop(symbol,'1d')
   
-  final_info = pd.concact()
-  # update metrics in db
+  dfs = [df_1_h,df_4_h,df_1d]
+  
+  
+  # final_info = pd.concact()
+  # # update metrics in db
   database = db()
-  database.update_results(final_info)
+  for info in dfs:
+      database.update_results(info)
       
 
 if __name__ == "__main__":
     
   symbol = 'IBM'
-  run_test(symbol)
+  run(symbol)
     
     
     
