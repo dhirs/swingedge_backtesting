@@ -22,7 +22,7 @@ class Database:
                 host=db_config['host'],
                 port=db_config['port'],
             )
-            print("✅ Connection to the Timescale PostgreSQL established successfully.")
+            # print("✅ Connection to the Timescale PostgreSQL established successfully.")
             return conn
         except Exception as e:
             print("❌ Connection to the Timescale PostgreSQL encountered an error: ", e)
@@ -82,7 +82,7 @@ class Database:
                 self.conn.commit()
                 print(f"✅ Successfully inserted/updated {len(values)} record(s).")
         except Exception as e:
-            self.conn.rollback()  
+            # self.conn.rollback()  
             print("❌ Error inserting data:", e)
         finally:
             self.conn.close()

@@ -21,6 +21,7 @@ class BaseStrategy(bt.Strategy):
         #     period_me1=self.params.fast_period,
         #     period_me2=self.params.slow_period,
         #     period_signal=self.params.signal_period)
+        self.mcross = bt.indicators.CrossOver(self.macd.macd, self.macd.signal)
         
     def log(self, txt, dt=None):
         ''' Logging function fot this strategy'''
@@ -30,10 +31,8 @@ class BaseStrategy(bt.Strategy):
         # print('%s, %s' % (dt.isoformat(), txt))
         
     def get_long_entry(self):
-      macd_cross = btind.CrossOver(self.macd.macd[0],self.macd.signal[0])
-      print(macd_cross)
-      exit()
-      if macd_cross>0:                                 
+            
+      if self.mcross[0] > 0.0:                                
       # if self.macd.macd[0] > self.macd.signal[0]:
         if self.macd.macd[0] < 0 and self.macd.signal[0] < 0:
           return True
@@ -49,7 +48,7 @@ class BaseStrategy(bt.Strategy):
         return True
     
     def get_short_entry(self):
-      if self.macd.macd[0] < self.macd.signal[0]:
+      if self.mcross[0] < 0.0:  
         if self.macd.macd[0] > 0 and self.macd.signal[0] > 0:
           return True
         
@@ -89,19 +88,22 @@ class BaseStrategy(bt.Strategy):
         # print(len(self))
         if self.order:
           return
-        
-        if not self.position:
-          if self.get_long_entry():
-              self.order = self.buy()
-          
-          elif self.get_short_entry():
-              self.order = self.sell()
-        else:
-          if self.position.size > 0:
-              if self.get_long_exit():
-                self.close()
-                
-          elif self.position.size < 0:
-              if self.get_short_exit():
-                self.close()
+        try:
+          if not self.position:
+            if self.get_long_entry():
+                self.order = self.buy()
+            
+            elif self.get_short_entry():
+                self.order = self.sell()
+          else:
+            if self.position.size > 0:
+                if self.get_long_exit():
+                  self.close()
+                  
+            elif self.position.size < 0:
+                if self.get_short_exit():
+                  self.close()
+        except Exception as err:
+          pass
+          # print(f"Unexpected {err=}, {type(err)=}")
  

@@ -10,10 +10,27 @@ from datetime import datetime, timezone
 pd.set_option('display.max_columns',None)
 all_results = {}
 
-# get data
-def get_data(query):
+
+def get_data(timeframe, symbol):
+    if timeframe == '1h':
+        table_name = 'one_h_mh'
     
-    # add data feed      
+    elif timeframe == '4h':
+        table_name = 'four_h_mh'
+        
+    elif timeframe == '1d':
+        table_name = 'daily_mh'
+   
+        
+    elif timeframe == '1w':
+        table_name = 'weekly_mh'
+        
+    elif timeframe == '1m':
+        table_name = 'monthly_mh'
+    
+    
+    query = f"select * from {table_name} where symbol = '{symbol}'"
+      
     data_feed = pdf.get_data_feed(query)
     return data_feed
 
@@ -26,27 +43,7 @@ def add_analyzers(cerebro):
     cerebro.addanalyzer(bta.Transactions, _name='transactions')
 
 def collect_results_opt(results,timeframe):
-    # par_list = [
-    #         [
-    #         x[0].params.max_loss_p, 
-    #         x[0].params.risk_reward,
-    #         x[0].analyzers.returns.get_analysis()['rnorm100'], 
-    #         x[0].analyzers.drawdown.get_analysis()['max']['drawdown'],
-    #         x[0].analyzers.sharpe.get_analysis()['sharperatio'],
-    #         x[0].analyzers.trades.get_analysis()['pnl']['net']['total'],
-    #         x[0].analyzers.trades.get_analysis()['won']['total'],
-    #         x[0].analyzers.trades.get_analysis()['won']['pnl']['total'],
-    #         x[0].analyzers.trades.get_analysis()['lost']['total'],
-    #         x[0].analyzers.trades.get_analysis()['lost']['pnl']['total'],
-    #         x[0].analyzers.trades.get_analysis()['long']['won'],
-    #         x[0].analyzers.trades.get_analysis()['long']['lost'],
-    #         x[0].analyzers.trades.get_analysis()['short']['won'],
-    #         x[0].analyzers.trades.get_analysis()['short']['lost'],
-    #         x[0].analyzers.trades.get_analysis()['len'],
-    #         x[0].analyzers.transactions.get_analysis(),
-    #         timeframe
-    #         ] for x in results]
-    
+     
     par_list = [
             [
             x[0].params.max_loss_p, 
@@ -77,8 +74,6 @@ def collect_results_opt(results,timeframe):
     
     return  resultDf
     
-    
-      
        
 def collect_results(results,timeframe):
     sharpe = results[0].analyzers.sharpe.get_analysis()
@@ -169,14 +164,10 @@ def generate_payload(symbol,metrics,opt_mode):
         for key,value in payload.items():
             print(f"key: {key} | value: {value}")
 
-
-
-
-
-def getResults(symbol,cerebro, query, timeframe, opt_mode,run_loop_done):
-    print(__name__,"opt mode: ",opt_mode)
+def getResults(symbol,cerebro, timeframe, opt_mode,run_loop_done):
+    # print(__name__,"opt mode: ",opt_mode)
     # add data to cerebro
-    data = get_data(query)
+    data = get_data(timeframe,symbol)
     cerebro.adddata(data)
     
     # add analysers
@@ -199,9 +190,11 @@ def getResults(symbol,cerebro, query, timeframe, opt_mode,run_loop_done):
         metrics = CompareResults(all_results)
         info = generate_payload(symbol=symbol, metrics=metrics, opt_mode=opt_mode)
         # for i in info.keys():
-        #     print(i)
-        # database = db()
-        # database.update_results(info)
+            # print(i)
+        database = db()
+        database.update_results(info)
+        # last added for multiple symbols
+        all_results = [] 
         
 
 def CompareResults(all_results):
