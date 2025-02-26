@@ -64,7 +64,7 @@ def collect_results_opt(results,timeframe):
     
     # print(par_list)
     
-    df = pd.DataFrame(par_list, columns = ['max_loss_p',                                            
+    resultDf= pd.DataFrame(par_list, columns = ['max_loss_p',                                            
                                            'risk_reward', 
                                            'returns','drawdown','sharpe','trades',
                                            'net_pnl',
@@ -73,33 +73,9 @@ def collect_results_opt(results,timeframe):
                                            'transactions','timeframe'                                      
                                            ])
     
-    # print(df.head())
-    tail = 5
     
-    # df['win_ratio'] = df['total_wins'] / (df['total_wins'] + df['total_losses'])
-    ##sort by pnl in ascending to get the last 5 rows with highest pnl
-    top5_records = df.sort_values(by='net_pnl').tail(tail)
     
-    ##fetch the last row and the corresponsing fields
-    last_row = top5_records.iloc[-1]
-    pnl = last_row['net_pnl']
-    wins = last_row['total_wins']
-    losses = last_row['total_losses'] 
-    opt_param = {'max_loss_p': float(last_row['max_loss_p']),
-                 'risk_reward': float(last_row['risk_reward'])}
-    opt_param_json = json.dumps(opt_param)
-    timeframe = last_row['timeframe']
-    
-    ##Put the result in dictionary format
-    result = {"dataframe":top5_records,
-              "pnl":pnl,
-              "wins":wins,
-              "losses":losses,
-              "opt_params": opt_param_json,
-              "timeframe": timeframe
-              }
-    
-    return  result
+    return  resultDf
     
     
       
@@ -141,10 +117,15 @@ def generate_payload(symbol,metrics,opt_mode):
     if opt_mode==1:
         strategy = 1
         run_time = datetime.now(timezone.utc)
-        value_json = metrics['dataframe'].to_json(orient="records", indent=4)
-        value_base64 = base64.b64encode(value_json.encode()).decode()
         
-        metrics['payload_base64'] = value_base64
+        df_json = metrics['dataframe'][0].to_json(orient="records", indent=4)
+        df_base64 = base64.b64encode(df_json.encode()).decode()
+        best_result_json = metrics['dataframe'][1].to_json(orient="records", indent=4)
+        best_base64 = base64.b64encode(best_result_json.encode()).decode()
+        
+        
+        metrics['payload_all_base64'] = df_base64
+        metrics['payload_best_base64'] = best_base64
         metrics['run_time'] = run_time
         metrics['strategy_id'] = strategy
         metrics['symbol'] = symbol
@@ -217,42 +198,43 @@ def getResults(symbol,cerebro, query, timeframe, opt_mode,run_loop_done):
     if(run_loop_done):
         metrics = CompareResults(all_results)
         info = generate_payload(symbol=symbol, metrics=metrics, opt_mode=opt_mode)
-
+        
         database = db()
         database.update_results(info)
         
 
 def CompareResults(all_results):
     print(len(all_results))
-    max_pnl = 0
-    for timeframe,info in all_results.items():
-        print(timeframe,info['pnl'])
-        max_pnl = max(info['pnl'],max_pnl)
     
-    print("Max PNL")
-    print(max_pnl)
+    df_list = [info for timeframe, info in all_results.items()]  
+    raw_df = pd.concat(df_list, ignore_index=True)
+
+    ##sort by pnl in descending order and fetch the top record
+    final_df = raw_df.sort_values(by='net_pnl',ascending=False)
+    top_record = final_df.head(0)
+    top_record_dict = final_df.iloc[0].to_dict()  
     
-    # "pnl":pnl,
-    # "wins":wins,
-    # "losses":losses,
-    # "opt_params": opt_param_json,
-    # "timeframe": timeframe
     
-    highest_row = {}
-    for timeframe,info in all_results.items():
-         if(info['pnl']==max_pnl):
-             highest_row['pnl'] = max_pnl
-             highest_row['wins'] = info['wins']
-             highest_row['losses'] = info['losses']
-             highest_row['opt_params'] = info['opt_params']
-             highest_row['timeframe'] = timeframe
+    ##fetch the corresponsing fields of top_row
+    pnl = top_record_dict['net_pnl']
+    wins = top_record_dict['total_wins']
+    losses = top_record_dict['total_losses'] 
+    opt_param = {'max_loss_p': float(top_record_dict['max_loss_p']),
+                 'risk_reward': float(top_record_dict['risk_reward'])}
+    opt_param_json = json.dumps(opt_param)
+    timeframe = top_record_dict['timeframe']
     
-    df_list = [info['dataframe'] for timeframe, info in all_results.items()]  
-    final_df = pd.concat(df_list, ignore_index=True)
+    ##Put the result in dictionary format
+    result = {"dataframe":[top_record,final_df],
+              "pnl":pnl,
+              "wins":wins,
+              "losses":losses,
+              "opt_params": opt_param_json,
+              "timeframe": timeframe
+              }
     
-    highest_row['dataframe'] = final_df
-   
-    return highest_row
+    
+    return result
              
     
     

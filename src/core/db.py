@@ -48,7 +48,7 @@ class Database:
             return
 
         query = """
-            INSERT INTO backtests (symbol, strategy_id, run_time, payload_all, wins, net_pnl, loses, opt_params, timeframe)
+            INSERT INTO backtests (symbol, strategy_id, run_time, payload_all, payload_best)
             VALUES %s
             ON CONFLICT (test_id) 
             DO UPDATE SET 
@@ -56,11 +56,8 @@ class Database:
                 strategy_id = EXCLUDED.strategy_id,
                 run_time = EXCLUDED.run_time,
                 payload_all = EXCLUDED.payload_all,
-                wins = EXCLUDED.wins,
-                net_pnl = EXCLUDED.net_pnl,
-                loses = EXCLUDED.loses,
-                opt_params = EXCLUDED.opt_params,
-                timeframe = EXCLUDED.timeframe;
+                payload_best = EXCLUDED.payload_best,
+                
         """
 
        
