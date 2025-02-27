@@ -1,33 +1,25 @@
 import backtrader as bt
 from strategy import BaseStrategy
 import src.core.run_test as backtest
-import src.core.pandas_data_feed as pdf
 
 
+def get_strategy_obj():
+    strategy= bt.Cerebro() 
+    strategy.optstrategy(BaseStrategy,
+                        max_loss_p = range(1,4,1),
+                        risk_reward = range(1,8,1)
+                        )
+    return strategy
 
-def get_data(timeframe, symbol):
-    if timeframe == '1h':
-        table_name = 'one_h_mh'
+
+def get_symbols():
+    symbols = ['IBM','NVIDIA','TSLA',
+               'META','AMZN','ADBE', 'INTC', 
+               'MSFT','NFLX','APPL','GOOGL'] 
     
-    elif timeframe == '4h':
-        table_name = 'four_h_mh'
-        
-    elif timeframe == '1d':
-        table_name = 'daily_mh'
-   
-        
-    elif timeframe == '1w':
-        table_name = 'weekly_mh'
-        
-    elif timeframe == '1m':
-        table_name = 'monthly_mh'
-    
-    
-    query = f"select * from {table_name} where symbol = '{symbol}'"
-      
-    data_feed = pdf.get_data_feed(query)
-    return data_feed
-# symbols = ['IBM','NVIDIA','TSLA','META','AMZN','ADBE', 'INTC', 'MSFT','NFLX','APPL','GOOGL']
+    # symbols = ['TSLA','GOOGL']
+    return symbols
+
 
 def run(symbol,opt_mode=1):
  
@@ -39,32 +31,26 @@ def run(symbol,opt_mode=1):
   for timeframe in periods:
     count += 1
     
-    
     if count == len(periods):
        run_loop_done = True
        count = 0 
     
-    backtest_strategy = bt.Cerebro() 
-    backtest_strategy.optstrategy(BaseStrategy,
-                        max_loss_p = range(1,4,1),
-                        risk_reward = range(1,8,1)
-                        )
-     
+    # add new strategy instance for each timeframe
+    strategy = get_strategy_obj()
+    
     # add data to cerebro strategy object
-    data = get_data(timeframe,symbol)
+    data = backtest.get_data(timeframe,symbol)
     
+    # skip processing the timeframe if no data exists
     if data is None:
-        print(f"!!!!!!!!!No data found for {symbol}, in timeframe {timeframe}!!!!!!")
-        return
+        continue
+    strategy.adddata(data)
     
-    backtest_strategy.adddata(data)
-    print(f"-----Found data for {symbol},{timeframe}-----")
-   
-    backtest.getResults(symbol,backtest_strategy, timeframe,run_loop_done,opt_mode)    
+    # run backtest for each timeframe for each symbol
+    backtest.getResults(symbol,strategy, timeframe,run_loop_done,opt_mode)    
 
-   
-symbols = ['IBM']           
+if __name__ == "__main__":
 
-for symbol in symbols:
-    
-    run(symbol)
+    for symbol in get_symbols():
+        
+        run(symbol)

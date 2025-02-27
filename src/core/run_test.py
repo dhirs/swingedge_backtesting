@@ -10,9 +10,6 @@ from datetime import datetime, timezone
 import warnings
 warnings.filterwarnings('ignore')
 
-
-
-
 pd.set_option('display.max_columns',None)
 all_results = {}
 
@@ -37,6 +34,11 @@ def get_data(timeframe, symbol):
     query = f"select * from {table_name} where symbol = '{symbol}'"
       
     data_feed = pdf.get_data_feed(query)
+    if data_feed is None:
+        print(f"!!!!!!!!!No data found for {symbol}, in timeframe {timeframe}!!!!!!")
+    else:
+        print(f"-----Found data for {symbol},{timeframe}-----")
+        
     return data_feed
 
 # add analyzers
@@ -199,6 +201,7 @@ def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode):
     # run backtest
     try:
         results = strategy_obj.run()
+        
     except Exception as err:
         print(f"!!!!!!!!!!!!!Error for symbol {symbol}!!!!!!!!!!!!!")
         print(err)
@@ -208,7 +211,11 @@ def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode):
     # collect results
     if opt_mode == 1:   
         results = collect_results_opt(results,timeframe)
-        all_results[timeframe] = results
+        if not results.empty:
+            all_results[timeframe] = results
+            print(f"--------Strategy ran successfully for {symbol}, {timeframe}---------")
+        else:
+            print(f"!!!!!!!Strategy not run for {symbol}, {timeframe}!!!!!!!")
 
         
     else:
