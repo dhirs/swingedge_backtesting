@@ -12,6 +12,7 @@ warnings.filterwarnings('ignore')
 
 
 
+
 pd.set_option('display.max_columns',None)
 all_results = {}
 
@@ -45,6 +46,7 @@ def add_analyzers(cerebro):
     cerebro.addanalyzer(bta.TradeAnalyzer, _name='trades')
     cerebro.addanalyzer(bta.Returns, _name='returns')
     cerebro.addanalyzer(bta.Transactions, _name='transactions')
+    return cerebro
 
 def collect_results_opt(results,timeframe):
      
@@ -190,20 +192,10 @@ def CompareResults(all_results):
 
 
 def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode):
-    
-    # add data to cerebro strategy object
-    data = get_data(timeframe,symbol)
-    
-    if data is None:
-        print(f"!!!!!!!!!No data found for {symbol}, in timeframe {timeframe}!!!!!!")
-        return
-    
-    strategy_obj.adddata(data)
-    print(f"-----Found data for {symbol},{timeframe}-----")
-    
-    # add analysers
+   
+    # add analyzers
     add_analyzers(strategy_obj)
-
+    
     # run backtest
     try:
         results = strategy_obj.run()
@@ -231,19 +223,7 @@ def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode):
         database = db()
         database.update_results(info)
         
-def run(symbol,strategy_obj,opt_mode=1):
- 
-  periods = ['1h']
-  
-  run_loop_done = False
-  count = 0
-  
-  for timeframe in periods:
-    count += 1
-    if count == len(periods):
-       run_loop_done = True
-       count = 0 
-    getResults(symbol,strategy_obj, timeframe,run_loop_done,opt_mode)    
+
     
     
     

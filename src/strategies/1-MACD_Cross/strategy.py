@@ -1,5 +1,5 @@
 import backtrader as bt
-import src.core.run_test as backtest
+
 
 class BaseStrategy(bt.Strategy):
   
@@ -102,17 +102,6 @@ class BaseStrategy(bt.Strategy):
           pass
           # print(f"Unexpected {err=}, {type(err)=}")
  
-if __name__ == "__main__":
+
     
-      symbols = ['IBM','NVIDIA','TSLA','META','AMZN','ADBE', 'INTC', 'MSFT','NFLX','APPL','GOOGL']
-      
-      # symbols = ['TSLA']           
-      
-      for symbol in symbols:
-        strategy_obj = bt.Cerebro() 
-        strategy_obj.optstrategy(BaseStrategy,
-                          max_loss_p = range(1,4,1),
-                          risk_reward = range(1,8,1)
-                          )
-  
-        backtest.run(symbol,strategy_obj)
+    
