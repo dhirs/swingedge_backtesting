@@ -10,43 +10,20 @@ import warnings
 warnings.filterwarnings('ignore')
 import traceback 
 
-def eval_params(opt_mode, strategy_class, params):
-      if opt_mode == 1:
-            
-            list = []
-            for key, value in params.items():
-                  list.append(f"{key} = {value}")
-                  
-            param_str = strategy_class + ","+",".join(list)
-            final_str = f"cerebro.optstrategy({param_str})"
-      else:
-            param_str = strategy_class
-            final_str = f"cerebro.addstrategy({param_str})"
-            
-      return final_str
-
-
 def run_loop(symbol,timeframe='1h', opt_mode=1,run_loop_done=False):      
 
       cerebro = bt.Cerebro()  
-      params = {'max_loss_p':'range(1,4,1)', 
-                  'risk_reward' :'range(1,8,1)'}
-      strategy_class = 'BaseStrategy'
-      
-      cerebro_strategy_params = eval_params(opt_mode, strategy_class,params)
-      
+
       # set strategy
-      # if opt_mode == 1:
+      if opt_mode == 1:
             
-      #       cerebro.optstrategy(BaseStrategy,
-      #         max_loss_p = range(1,4,1), 
-      #         risk_reward = range(1,8,1)
-      #       )
+            cerebro.optstrategy(BaseStrategy,
+              max_loss_p = range(1,4,1), 
+              risk_reward = range(1,8,1)
+            )
           
-      # else:
-      #       cerebro.addstrategy(BaseStrategy) 
-      
-      eval(cerebro_strategy_params)     
+      else:
+            cerebro.addstrategy(BaseStrategy)      
       
       backtest.getResults(symbol,cerebro,timeframe,opt_mode,run_loop_done)
       
