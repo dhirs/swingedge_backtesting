@@ -26,32 +26,23 @@ def eval_params(opt_mode, strategy_class, params):
       return final_str
 
 
-def run_loop(symbol,timeframe='1h', opt_mode=1,run_loop_done=False):      
+def run_loop(symbol,
+             strategy_class,
+             opt_params,
+             timeframe, 
+             run_loop_done,
+             opt_mode,             
+             ):      
 
       cerebro = bt.Cerebro()  
-      params = {'max_loss_p':'range(1,4,1)', 
-                  'risk_reward' :'range(1,8,1)'}
-      strategy_class = 'BaseStrategy'
-      
-      cerebro_strategy_params = eval_params(opt_mode, strategy_class,params)
-      
-      # set strategy
-      # if opt_mode == 1:
+      cerebro_strategy_params = eval_params(opt_mode, strategy_class,opt_params)
             
-      #       cerebro.optstrategy(BaseStrategy,
-      #         max_loss_p = range(1,4,1), 
-      #         risk_reward = range(1,8,1)
-      #       )
-          
-      # else:
-      #       cerebro.addstrategy(BaseStrategy) 
-      
       eval(cerebro_strategy_params)     
       
       backtest.getResults(symbol,cerebro,timeframe,opt_mode,run_loop_done)
       
 
-def run(symbol):
+def run(symbol,strategy_class,opt_params,opt_mode=1):
  
   periods = ['1h','4h','1d']
   
@@ -63,17 +54,23 @@ def run(symbol):
     if count == len(periods):
        run_loop_done = True
        count = 0 
-    run_loop(symbol=symbol,timeframe=timeframe,run_loop_done=run_loop_done)
+    run_loop(symbol,strategy_class,opt_params, timeframe,run_loop_done,opt_mode)
       
 
 if __name__ == "__main__":
     
-      # symbols = ['IBM','NVIDIA','TSLA','META','AMZN','MSFT','NFLX','APPL','GOOGL']
-      symbols = ['IBM']
+      symbols = ['IBM','NVIDIA','TSLA','META','AMZN','MSFT','NFLX','APPL','GOOGL']
+      
+      # symbols = ['IBM']
+      
+      opt_params = {'max_loss_p':'range(1,4,1)', 
+                  'risk_reward' :'range(1,8,1)'}
+      
+      strategy_class = 'BaseStrategy'
   
       for symbol in symbols:
   
-            run(symbol)
+            run(symbol,strategy_class,opt_params)
      
     
     

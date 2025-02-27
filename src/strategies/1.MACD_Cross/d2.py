@@ -47,10 +47,15 @@ if __name__ == "__main__":
     
       # symbols = ['IBM','NVIDIA','TSLA','META','AMZN','MSFT','NFLX','APPL','GOOGL']
       symbols = ['IBM']
+      
+      opt_params = {'max_loss_p':'range(1,4,1)', 
+                  'risk_reward' :'range(1,8,1)'}
+      
+      strategy_class = 'BaseStrategy'
   
       for symbol in symbols:
   
-            run(symbol)
+            run(symbol,strategy_class,opt_params)
      
     
     
