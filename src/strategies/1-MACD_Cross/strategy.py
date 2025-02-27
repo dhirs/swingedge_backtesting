@@ -104,16 +104,15 @@ class BaseStrategy(bt.Strategy):
  
 if __name__ == "__main__":
     
-      # symbols = ['IBM','NVIDIA','TSLA','META','AMZN','MSFT','NFLX','APPL','GOOGL']
+      symbols = ['IBM','NVIDIA','TSLA','META','AMZN','ADBE', 'INTC', 'MSFT','NFLX','APPL','GOOGL']
       
-      symbols = ['IBM']
-            
-      strategy_obj = bt.Cerebro() 
-      strategy_obj.optstrategy(BaseStrategy,
+      # symbols = ['TSLA']           
+      
+      for symbol in symbols:
+        strategy_obj = bt.Cerebro() 
+        strategy_obj.optstrategy(BaseStrategy,
                           max_loss_p = range(1,4,1),
                           risk_reward = range(1,8,1)
                           )
   
-      for symbol in symbols:
-  
-            backtest.run(symbol,strategy_obj)
+        backtest.run(symbol,strategy_obj)

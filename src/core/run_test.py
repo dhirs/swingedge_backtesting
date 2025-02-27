@@ -233,7 +233,7 @@ def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode):
         
 def run(symbol,strategy_obj,opt_mode=1):
  
-  periods = ['1h','4h','1d']
+  periods = ['1h']
   
   run_loop_done = False
   count = 0
