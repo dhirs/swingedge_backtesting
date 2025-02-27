@@ -155,8 +155,8 @@ def generate_payload(symbol,metrics,opt_mode):
 
         df_compact = pd.DataFrame([payload])  
 
-        for key,value in payload.items():
-            print(f"key: {key} | value: {value}")
+        # for key,value in payload.items():
+        #     print(f"key: {key} | value: {value}")
         
 
 def CompareResults(all_results):
