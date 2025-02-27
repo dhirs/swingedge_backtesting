@@ -1,5 +1,4 @@
 import backtrader as bt
-# import backtrader.indicators as btind
 import src.core.run_test as backtest
 
 class BaseStrategy(bt.Strategy):
