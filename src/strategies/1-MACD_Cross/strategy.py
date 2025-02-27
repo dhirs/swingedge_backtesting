@@ -1,6 +1,6 @@
 import backtrader as bt
-import long_entry,long_exit,short_entry,short_exit
-import backtrader.indicators as btind
+# import backtrader.indicators as btind
+import src.core.run_test as backtest
 
 class BaseStrategy(bt.Strategy):
   
@@ -17,10 +17,6 @@ class BaseStrategy(bt.Strategy):
         self.order = None
        
         self.macd = bt.indicators.MACD(self.data.close)
-        # self.macd = bt.indicators.MACD(self.data.close,
-        #     period_me1=self.params.fast_period,
-        #     period_me2=self.params.slow_period,
-        #     period_signal=self.params.signal_period)
         self.mcross = bt.indicators.CrossOver(self.macd.macd, self.macd.signal)
         
     def log(self, txt, dt=None):
@@ -107,3 +103,18 @@ class BaseStrategy(bt.Strategy):
           pass
           # print(f"Unexpected {err=}, {type(err)=}")
  
+if __name__ == "__main__":
+    
+      # symbols = ['IBM','NVIDIA','TSLA','META','AMZN','MSFT','NFLX','APPL','GOOGL']
+      
+      symbols = ['IBM']
+            
+      strategy_obj = bt.Cerebro() 
+      strategy_obj.optstrategy(BaseStrategy,
+                          max_loss_p = range(1,4,1),
+                          risk_reward = range(1,8,1)
+                          )
+  
+      for symbol in symbols:
+  
+            backtest.run(symbol,strategy_obj)

@@ -7,9 +7,13 @@ from src.core.db import Database as db
 import time
 import base64
 from datetime import datetime, timezone
+import warnings
+warnings.filterwarnings('ignore')
+
+
+
 pd.set_option('display.max_columns',None)
 all_results = {}
-
 
 def get_data(timeframe, symbol):
     if timeframe == '1h':
@@ -103,8 +107,6 @@ def collect_results(results,timeframe):
         
     df = pd.DataFrame.from_dict(dict)
     
-    # js = json.dumps(df)
-    # print(df.to_json())
     return df
 
 
@@ -126,25 +128,13 @@ def generate_payload(symbol,metrics,opt_mode):
         metrics['symbol'] = symbol
         return metrics
         
-        # return [symbol,strategy,run_time,value_json,metrics[1],metrics[2],metrics[3],metrics[4],metrics[5]]
-        # print(value_json)
-        # with open('payload.json',"w",encoding='utf-8') as json_file:
-        #         json_file.write(value_json)
         
        
     else:
         strategy = 1
         run_time = time.time()
         metrics_json = metrics.to_json(orient="records") 
-        # keys = ["symbol", "strategy", "run_time", "metrics"]
-        # values = [symbol, strategy, run_time, metrics]
-        # payload = dict(zip(keys, values))
-        # for key,value in payload.items():
-        #     print(f"key: {key} | value: {value}")
-        # df = pd.DataFrame.from_dict(payload)
-        # print(df)
-        # return df
-        
+                
         payload = {
             "symbol": symbol,
             "strategy": strategy,
@@ -163,47 +153,6 @@ def generate_payload(symbol,metrics,opt_mode):
 
         for key,value in payload.items():
             print(f"key: {key} | value: {value}")
-
-def getResults(symbol,cerebro, timeframe, opt_mode,run_loop_done):
-    
-    # add data to cerebro
-    data = get_data(timeframe,symbol)
-    
-    if data is None:
-        print(f"!!!!!!!!!No data found for {symbol}, in timeframe {timeframe}!!!!!!")
-        return
-    
-    cerebro.adddata(data)
-    print(f"-----Added data for {symbol},{timeframe}-----")
-    # add analysers
-    add_analyzers(cerebro)
-
-    # run backtest
-    try:
-        results = cerebro.run()
-    except Exception as err:
-        print(err)
-        return
-        
-    global all_results
-    # collect results
-    if opt_mode == 1:   
-        results = collect_results_opt(results,timeframe)
-        all_results[timeframe] = results
-
-        
-    else:
-        results = collect_results(results,timeframe)
-    
-    metrics = {}
-    if(run_loop_done):
-        metrics = CompareResults(all_results)
-        info = generate_payload(symbol=symbol, metrics=metrics, opt_mode=opt_mode)
-        # for i in info.keys():
-            # print(i)
-        database = db()
-        database.update_results(info)
-        
         
 
 def CompareResults(all_results):
@@ -238,8 +187,63 @@ def CompareResults(all_results):
     
     
     return result
-             
+
+
+def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode):
     
+    # add data to cerebro strategy object
+    data = get_data(timeframe,symbol)
+    
+    if data is None:
+        print(f"!!!!!!!!!No data found for {symbol}, in timeframe {timeframe}!!!!!!")
+        return
+    
+    strategy_obj.adddata(data)
+    print(f"-----Found data for {symbol},{timeframe}-----")
+    
+    # add analysers
+    add_analyzers(strategy_obj)
+
+    # run backtest
+    try:
+        results = strategy_obj.run()
+    except Exception as err:
+        print(f"!!!!!!!!!!!!!Error for symbol {symbol}!!!!!!!!!!!!!")
+        print(err)
+        return
+        
+    global all_results
+    # collect results
+    if opt_mode == 1:   
+        results = collect_results_opt(results,timeframe)
+        all_results[timeframe] = results
+
+        
+    else:
+        results = collect_results(results,timeframe)
+    
+    metrics = {}
+    if(run_loop_done):
+        metrics = CompareResults(all_results)
+        info = generate_payload(symbol=symbol, metrics=metrics, opt_mode=opt_mode)
+        # for i in info.keys():
+            # print(i)
+        database = db()
+        database.update_results(info)
+        
+def run(symbol,strategy_obj,opt_mode=1):
+ 
+  periods = ['1h','4h','1d']
+  
+  run_loop_done = False
+  count = 0
+  
+  for timeframe in periods:
+    count += 1
+    if count == len(periods):
+       run_loop_done = True
+       count = 0 
+    getResults(symbol,strategy_obj, timeframe,run_loop_done,opt_mode)    
     
     
     
