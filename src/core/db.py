@@ -36,7 +36,8 @@ class Database:
         
     def get_data_frame(self,query):
         
-        pandas_df = sqlio.read_sql_query(query, self.conn)        
+        pandas_df = sqlio.read_sql_query(query, self.conn)  
+           
         return pandas_df
     
 

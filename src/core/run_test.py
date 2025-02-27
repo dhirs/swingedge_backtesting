@@ -165,16 +165,26 @@ def generate_payload(symbol,metrics,opt_mode):
             print(f"key: {key} | value: {value}")
 
 def getResults(symbol,cerebro, timeframe, opt_mode,run_loop_done):
-    # print(__name__,"opt mode: ",opt_mode)
+    
     # add data to cerebro
     data = get_data(timeframe,symbol)
-    cerebro.adddata(data)
     
+    if data is None:
+        print(f"!!!!!!!!!No data found for {symbol}, in timeframe {timeframe}!!!!!!")
+        return
+    
+    cerebro.adddata(data)
+    print(f"-----Added data for {symbol},{timeframe}-----")
     # add analysers
     add_analyzers(cerebro)
 
     # run backtest
-    results = cerebro.run()
+    try:
+        results = cerebro.run()
+    except Exception as err:
+        print(err)
+        return
+        
     global all_results
     # collect results
     if opt_mode == 1:   
@@ -193,8 +203,7 @@ def getResults(symbol,cerebro, timeframe, opt_mode,run_loop_done):
             # print(i)
         database = db()
         database.update_results(info)
-        # last added for multiple symbols
-        all_results = [] 
+        
         
 
 def CompareResults(all_results):

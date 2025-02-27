@@ -13,8 +13,12 @@ class PandasData(bt.feeds.PandasData):
     )
 
 def get_data_feed(query):
+    
+    data_feed = None
     db = Database()
     query_results_data_frame = db.get_data_frame(query)
-    data_feed = PandasData(dataname=query_results_data_frame)
+    
+    if not query_results_data_frame.empty:
+        data_feed = PandasData(dataname=query_results_data_frame)   
     
     return data_feed

@@ -18,15 +18,15 @@ def run_loop(symbol,timeframe='1h', opt_mode=1,run_loop_done=False):
       if opt_mode == 1:
             
             cerebro.optstrategy(BaseStrategy,
-              max_loss_p = range(1,4,1),  ##loss i am willing to accept
+              max_loss_p = range(1,4,1), 
               risk_reward = range(1,8,1)
             )
           
       else:
             cerebro.addstrategy(BaseStrategy)      
       
-      results = backtest.getResults(symbol,cerebro,timeframe,opt_mode,run_loop_done)
-      return results
+      backtest.getResults(symbol,cerebro,timeframe,opt_mode,run_loop_done)
+      
 
 def run(symbol):
  
@@ -45,16 +45,13 @@ def run(symbol):
 
 if __name__ == "__main__":
     
-  # symbols = ['IBM','NVIDIA','TSLA','META','AMZN','MSFT','NFLX','APPL','GOOGL']
-  symbols = ['APPL']
-  for symbol in symbols:
-    
-    try:
-      print(f"-----------Starting for {symbol}")
-      run(symbol)
-      print(f"----Completed run for:{symbol}----")
-    except Exception as err:
-      print(traceback.format_exc())
+      symbols = ['IBM','NVIDIA','TSLA','META','AMZN','MSFT','NFLX','APPL','GOOGL']
+#   symbols = ['IBM','TSLA']
+  
+      for symbol in symbols:
+  
+            run(symbol)
+     
     
     
     
