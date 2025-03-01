@@ -42,7 +42,7 @@ class Database:
     
 
     def update_results(self, data):
-        print(data.keys())
+        # print(data.keys())
     
         if not data:
             print("⚠️ No data provided for insertion.")

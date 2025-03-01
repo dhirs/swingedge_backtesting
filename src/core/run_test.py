@@ -13,6 +13,7 @@ warnings.filterwarnings('ignore')
 pd.set_option('display.max_columns',None)
 all_results = {}
 
+    
 def get_data(timeframe, symbol):
     if timeframe == '1h':
         table_name = 'one_h_mh'
@@ -51,36 +52,39 @@ def add_analyzers(cerebro):
     return cerebro
 
 def collect_results_opt(results,timeframe):
-     
-    par_list = [
-            [
-            x[0].params.max_loss_p, 
-            x[0].params.risk_reward,
-            x[0].analyzers.returns.get_analysis(), 
-            x[0].analyzers.drawdown.get_analysis(),
-            x[0].analyzers.sharpe.get_analysis(),
-            x[0].analyzers.trades.get_analysis(),
-            x[0].analyzers.trades.get_analysis()['pnl']['net']['total'], ##net pnl
-            x[0].analyzers.trades.get_analysis()['won']['pnl']['total'],  ##total wins
-            x[0].analyzers.trades.get_analysis()['lost']['pnl']['total'],  ##total_losses
-            x[0].analyzers.transactions.get_analysis(),
-            timeframe
-            ] for x in results]
+    try: 
+        par_list = [
+                [
+                x[0].params.max_loss_p, 
+                x[0].params.risk_reward,
+                x[0].analyzers.returns.get_analysis(), 
+                x[0].analyzers.drawdown.get_analysis(),
+                x[0].analyzers.sharpe.get_analysis(),
+                x[0].analyzers.trades.get_analysis(),
+                x[0].analyzers.trades.get_analysis()['pnl']['net']['total'], ##net pnl
+                x[0].analyzers.trades.get_analysis()['won']['pnl']['total'],  ##total wins
+                x[0].analyzers.trades.get_analysis()['lost']['pnl']['total'],  ##total_losses
+                x[0].analyzers.transactions.get_analysis(),
+                timeframe
+                ] for x in results]
     
-    # print(par_list)
+        # print(par_list)
     
-    resultDf= pd.DataFrame(par_list, columns = ['max_loss_p',                                            
-                                           'risk_reward', 
-                                           'returns','drawdown','sharpe','trades',
-                                           'net_pnl',
-                                           'total_wins',
-                                           'total_losses',
-                                           'transactions','timeframe'                                      
-                                           ])
+        resultDf= pd.DataFrame(par_list, columns = ['max_loss_p',                                            
+                                            'risk_reward', 
+                                            'returns','drawdown','sharpe','trades',
+                                            'net_pnl',
+                                            'total_wins',
+                                            'total_losses',
+                                            'transactions','timeframe'                                      
+                                            ])
+    
+    except Exception as err:
+        print(f"!!!!!!Error populating results for {timeframe}!!!!!!!!")
+        return pd.DataFrame()
     
     
-    
-    return  resultDf
+    return resultDf
     
        
 def collect_results(results,timeframe):
@@ -203,7 +207,7 @@ def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode):
         results = strategy_obj.run()
         
     except Exception as err:
-        print(f"!!!!!!!!!!!!!Error for symbol {symbol}!!!!!!!!!!!!!")
+        print(f"!!!!!!!!!!!!!Error running strategy for symbol {symbol}!!!!!!!!!!!!!")
         print(err)
         return
         

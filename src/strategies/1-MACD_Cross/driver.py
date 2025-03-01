@@ -1,7 +1,7 @@
 import backtrader as bt
 from strategy import BaseStrategy
 import src.core.run_test as backtest
-
+from src.core.db import Database as db
 
 def get_strategy_obj():
     strategy= bt.Cerebro() 
@@ -13,12 +13,20 @@ def get_strategy_obj():
 
 
 def get_symbols():
-    symbols = ['IBM','NVIDIA','TSLA',
-               'META','AMZN','ADBE', 'INTC', 
-               'MSFT','NFLX','APPL','GOOGL'] 
+    # symbols_list = ['FAST']
+    try:
+        
+        index = 'N100'
+        query = f"select symbol from instrument_index where index_f = '{index}';"
+        database = db()
+        symbols_df = database.get_data_frame(query)
+        symbols_list = symbols_df['symbol'].tolist()
+        
+    except Exception as err:
+        print(f"!!!!!!!No symbols found for given query!!!!!!!!!!{err}")
+        
     
-    # symbols = ['TSLA','GOOGL']
-    return symbols
+    return symbols_list
 
 
 def run(symbol,opt_mode=1):
@@ -51,6 +59,16 @@ def run(symbol,opt_mode=1):
 
 if __name__ == "__main__":
 
+    symbols = get_symbols()
+    if not symbols:
+        exit()
+    
     for symbol in get_symbols():
         
-        run(symbol)
+        print(f"----Starting run for {symbol}-----")
+        try:
+            run(symbol)
+            print(f"----Completed run for {symbol}-----")
+        except Exception as e:
+            print(f"!!!!!!Error completing run for {symbol}!!!!!!!!!")
+            continue
