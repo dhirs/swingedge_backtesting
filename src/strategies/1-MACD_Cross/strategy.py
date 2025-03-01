@@ -9,6 +9,7 @@ class BaseStrategy(bt.Strategy):
         ('risk_reward', 4)
           
     )
+    id = None
  
     def __init__(self):
         

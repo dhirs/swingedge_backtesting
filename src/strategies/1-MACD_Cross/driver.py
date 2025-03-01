@@ -3,12 +3,15 @@ from strategy import BaseStrategy
 import src.core.run_test as backtest
 from src.core.db import Database as db
 
+strategy_id = 1
+
 def get_strategy_obj():
     strategy= bt.Cerebro() 
     strategy.optstrategy(BaseStrategy,
                         max_loss_p = range(1,4,1),
                         risk_reward = range(1,8,1)
                         )
+    strategy.id = strategy_id
     return strategy
 
 
@@ -21,6 +24,7 @@ def get_symbols():
         database = db()
         symbols_df = database.get_data_frame(query)
         symbols_list = symbols_df['symbol'].tolist()
+        symbols_list = ['IBM']
         
     except Exception as err:
         print(f"!!!!!!!No symbols found for given query!!!!!!!!!!{err}")

@@ -118,9 +118,9 @@ def collect_results(results,timeframe):
     return df
 
 
-def generate_payload(symbol,metrics,opt_mode):
+def generate_payload(strategy_id, symbol,metrics,opt_mode):
     if opt_mode==1:
-        strategy = 1
+        
         run_time = datetime.now(timezone.utc)
         
         df_json = metrics['dataframe'][1].to_json(orient="records", indent=4)
@@ -132,20 +132,20 @@ def generate_payload(symbol,metrics,opt_mode):
         metrics['payload_all_base64'] = df_base64
         metrics['payload_best_base64'] = best_base64
         metrics['run_time'] = run_time
-        metrics['strategy_id'] = strategy
+        metrics['strategy_id'] = strategy_id
         metrics['symbol'] = symbol
         return metrics
         
         
        
     else:
-        strategy = 1
+        
         run_time = time.time()
         metrics_json = metrics.to_json(orient="records") 
                 
         payload = {
             "symbol": symbol,
-            "strategy": strategy,
+            "strategy": strategy_id,
             "run_time": run_time,
             "metrics": metrics_json
         }
@@ -198,7 +198,10 @@ def CompareResults(all_results):
 
 
 def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode):
-   
+    
+    # get strategy id
+    strategy_id  = strategy_obj.id
+    
     # add analyzers
     add_analyzers(strategy_obj)
     
@@ -228,7 +231,7 @@ def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode):
     metrics = {}
     if(run_loop_done):
         metrics = CompareResults(all_results)
-        info = generate_payload(symbol=symbol, metrics=metrics, opt_mode=opt_mode)
+        info = generate_payload(strategy_id,symbol=symbol, metrics=metrics, opt_mode=opt_mode)
         # for i in info.keys():
             # print(i)
         database = db()
