@@ -13,8 +13,57 @@ warnings.filterwarnings('ignore')
 pd.set_option('display.max_columns',None)
 all_results = {}
 
+
+def get_data_other(timeframe, symbol, asset_class):
     
-def get_data(timeframe, symbol):
+    prefix = 'cr'
+    if asset_class == 'index':
+        prefix  = 'idx'
+    
+    if timeframe == '15m':
+        table_name = 'fifteen_m'
+        
+    elif timeframe == '30m':
+        table_name = 'thirty_m'
+        
+    elif timeframe == '45m':
+        table_name = 'fortyfive_m'
+        
+    elif timeframe == '1h':
+        table_name = 'one_h'
+    
+    elif timeframe == '4h':
+        table_name = 'four_h'
+        
+    elif timeframe == '1d':
+        table_name = 'daily'
+   
+        
+    elif timeframe == '1w':
+        table_name = 'weekly'
+        
+    elif timeframe == '1m':
+        table_name = 'monthly'
+        
+    final_table_name = prefix + "_" + table_name
+    print(final_table_name)
+    
+    query = f"select * from {final_table_name} where symbol = '{symbol}'"
+      
+    data_feed = pdf.get_data_feed(query)
+    if data_feed is None:
+        print(f"!!!!!!!!!No data found for {symbol}, in timeframe {timeframe}!!!!!!")
+    else:
+        print(f"-----Found data for {symbol},{timeframe}-----")
+        
+    return data_feed
+
+    
+def get_data(timeframe, symbol,asset_class):
+    
+    if asset_class in ['crypto' , 'index']:
+        return get_data_other(timeframe, symbol, asset_class)
+    
     if timeframe == '1h':
         table_name = 'one_h_mh'
     

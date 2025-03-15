@@ -3,9 +3,9 @@ from strategy import BaseStrategy
 import src.core.run_test as backtest
 from src.core.db import Database as db
 
-strategy_id = 1
 
-def get_strategy_obj():
+
+def get_strategy_obj(strategy_id):
     strategy= bt.Cerebro() 
     strategy.optstrategy(BaseStrategy,
                         max_loss_p = range(1,4,1),
@@ -15,28 +15,34 @@ def get_strategy_obj():
     return strategy
 
 
-def get_symbols():
-    # symbols_list = ['FAST']
-    try:
+def get_symbols(asset_class='stock'):
+    
+    if asset_class == "stock":
+        try:
         
-        index = 'N100'
-        query = f"select symbol from instrument_index where index_f = '{index}';"
-        database = db()
-        symbols_df = database.get_data_frame(query)
-        symbols_list = symbols_df['symbol'].tolist()
-        symbols_list = ['IBM']
+            index = 'N100'
+            query = f"select symbol from instrument_index where index_f = '{index}';"
+            database = db()
+            symbols_df = database.get_data_frame(query)
+            symbols_list = symbols_df['symbol'].tolist()
         
-    except Exception as err:
-        print(f"!!!!!!!No symbols found for given query!!!!!!!!!!{err}")
         
+        except Exception as err:
+            print(f"!!!!!!!No symbols found for given query!!!!!!!!!!{err}")
+    
+    elif asset_class == 'crypto':
+        symbols_list = ['X:BTCUSD']
     
     return symbols_list
 
 
-def run(symbol,opt_mode=1):
+def process_symbol(symbol,strategy_id, asset_class='stock', opt_mode=1):
  
-  periods = ['1h','4h','1d']
-  
+  if asset_class == 'crypto':
+    periods = ['15m','30m', '45m', '1h','4h','1d']
+  else:
+    periods = ['1h','4h','1d']
+    
   run_loop_done = False
   count = 0
   
@@ -48,10 +54,10 @@ def run(symbol,opt_mode=1):
        count = 0 
     
     # add new strategy instance for each timeframe
-    strategy = get_strategy_obj()
+    strategy = get_strategy_obj(strategy_id)
     
     # add data to cerebro strategy object
-    data = backtest.get_data(timeframe,symbol)
+    data = backtest.get_data(timeframe,symbol,asset_class)
     
     # skip processing the timeframe if no data exists
     if data is None:
@@ -61,18 +67,30 @@ def run(symbol,opt_mode=1):
     # run backtest for each timeframe for each symbol
     backtest.getResults(symbol,strategy, timeframe,run_loop_done,opt_mode)    
 
-if __name__ == "__main__":
 
-    symbols = get_symbols()
+def run_backtest(asset_class,strategy_id):
+    
+    symbols = get_symbols(asset_class)
     if not symbols:
         exit()
     
-    for symbol in get_symbols():
+    for symbol in symbols:
         
         print(f"----Starting run for {symbol}-----")
         try:
-            run(symbol)
+            process_symbol(symbol,strategy_id,asset_class)
             print(f"----Completed run for {symbol}-----")
         except Exception as e:
             print(f"!!!!!!Error completing run for {symbol}!!!!!!!!!")
             continue
+
+
+if __name__ == "__main__":
+
+    asset_class = 'crypto'
+    strategy_id = 5
+    
+    run_backtest(asset_class,strategy_id)
+    
+    
+    

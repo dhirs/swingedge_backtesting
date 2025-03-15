@@ -39,8 +39,8 @@ class BaseStrategy(bt.Strategy):
       if self.data.close[0] < self.low:
         return True
       
-      target_price = self.execution_price*(1+ self.params.risk_reward/100)
-      if self.data.close[0] >= target_price:
+      # target_price = self.execution_price*(1+ self.params.risk_reward/100)
+      if self.data.close[0] >= self.target_price:
         return True
     
     def get_short_entry(self):
@@ -55,8 +55,8 @@ class BaseStrategy(bt.Strategy):
       if self.data.close[0] > self.high:
         return True
       
-      target_price = self.execution_price*(1-self.params.risk_reward/100)
-      if self.data.close[0] <= target_price:
+      # target_price = self.execution_price*(1-self.params.risk_reward/100)
+      if self.data.close[0] <= self.target_price:
         return True
       
 
@@ -73,6 +73,14 @@ class BaseStrategy(bt.Strategy):
         self.execution_price = order.executed.price
         self.low = self.data.low[0]
         self.high = self.data.high[0]
+        
+        if order.isbuy():
+          self.risk  = self.data.close[0]-self.data.low[0]
+          self.target_price = self.execution_price + self.risk*self.params.risk_reward
+        
+        if order.issell():
+          self.risk  = self.data.high[0]-self.data.close[0]
+          self.target_price = self.execution_price - self.risk*self.params.risk_reward
         # print('Position is {}'.format(self.position))
         # print('Trade executed at bar {}'.format(self.bar_executed))
 
