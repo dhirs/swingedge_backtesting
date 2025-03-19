@@ -118,6 +118,7 @@ def collect_results_opt(results,timeframe):
                 ] for x in results]
     
         # print(par_list)
+        
     
         resultDf= pd.DataFrame(par_list, columns = ['max_loss_p',                                            
                                             'risk_reward', 
@@ -130,6 +131,7 @@ def collect_results_opt(results,timeframe):
     
     except Exception as err:
         print(f"!!!!!!Error populating results for {timeframe}!!!!!!!!")
+        print(err)
         return pd.DataFrame()
     
     
@@ -258,6 +260,7 @@ def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode):
     try:
         results = strategy_obj.run()
         
+        
     except Exception as err:
         print(f"!!!!!!!!!!!!!Error running strategy for symbol {symbol}!!!!!!!!!!!!!")
         print(err)
@@ -269,9 +272,10 @@ def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode):
         results = collect_results_opt(results,timeframe)
         if not results.empty:
             all_results[timeframe] = results
+            
             print(f"--------Strategy ran successfully for {symbol}, {timeframe}---------")
         else:
-            print(f"!!!!!!!Strategy not run for {symbol}, {timeframe}!!!!!!!")
+            print(f"!!!!!!!No results, strategy not run for {symbol}, {timeframe}!!!!!!!")
 
         
     else:

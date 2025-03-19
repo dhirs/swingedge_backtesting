@@ -6,7 +6,7 @@ class BaseStrategy(bt.Strategy):
     params = (
        
         ('max_loss_p' , 1),
-        ('risk_reward', 4)
+        ('risk_reward', 9)
           
     )
     id = None

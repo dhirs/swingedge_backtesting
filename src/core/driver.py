@@ -1,5 +1,6 @@
 import backtrader as bt
-from strategy import BaseStrategy
+# from src.strategies.macd_cross.strategy import BaseStrategy
+from src.strategies.bolbands.strategy import BaseStrategy
 import src.core.run_test as backtest
 from src.core.db import Database as db
 
@@ -86,9 +87,9 @@ def run_backtest(asset_class,strategy_id):
 
 
 if __name__ == "__main__":
-
+    
     asset_class = 'crypto'
-    strategy_id = 5
+    strategy_id = 7
     
     run_backtest(asset_class,strategy_id)
     
