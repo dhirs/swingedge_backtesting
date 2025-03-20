@@ -24,10 +24,17 @@ class BaseStrategy(bt.Strategy):
         dt = dt or self.data.datetime[0]
         if isinstance(dt, float):
             dt = bt.num2date(dt)
-        # print('%s, %s' % (dt.isoformat(), txt))
+            print('%s, %s' % (dt.isoformat(), txt))
         
     def get_long_entry(self):
-            
+      print(self.data.close[0])  
+      print(self.data.open[0])  
+       
+      print(self.bb.mid[0])  
+      dt = self.data.datetime[0]
+      dt = bt.num2date(dt)
+      print(dt.isoformat())
+      
       if self.data.close[0]  > self.bb.mid[0]:                            
         if self.data.open[0] < self.bb.mid[0]:
           return True
@@ -43,8 +50,16 @@ class BaseStrategy(bt.Strategy):
         return True
     
     def get_short_entry(self):
+      print(self.data.close[0])  
+      print(self.bb.mid[0])  
+      print(self.data.open[0])  
+      
+      dt = self.data.datetime[0]
+      dt = bt.num2date(dt)
+      print(dt.isoformat())
       if self.data.close[0]  < self.bb.mid[0]  :  
         if self.data.open[0] > self.bb.mid[0]:
+         
           return True
         
     
@@ -60,7 +75,7 @@ class BaseStrategy(bt.Strategy):
       
 
     def notify_order(self,order):
-
+      print(order.status)
       if order.status in [order.Completed]:
         if order.isbuy():
           self.log('Buy executed at:{}'.format(order.executed.price))

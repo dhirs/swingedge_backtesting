@@ -48,9 +48,10 @@ def get_data_other(timeframe, symbol, asset_class):
     final_table_name = prefix + "_" + table_name
     print(final_table_name)
     
-    query = f"select * from {final_table_name} where symbol = '{symbol}'"
-      
+    query = f"select * from {final_table_name} where symbol = '{symbol}' and extract(DOW from bucket) between 1 and 5 order by bucket asc"
+    # query = "select * from cr_daily where DATE(bucket) between '2024-09-16' and '2024-09-25' order by bucket asc"
     data_feed = pdf.get_data_feed(query)
+    
     if data_feed is None:
         print(f"!!!!!!!!!No data found for {symbol}, in timeframe {timeframe}!!!!!!")
     else:
