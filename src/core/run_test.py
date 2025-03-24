@@ -8,6 +8,8 @@ import time
 import base64
 from datetime import datetime, timezone
 import warnings
+
+from tabulate import tabulate
 warnings.filterwarnings('ignore')
 
 pd.set_option('display.max_columns',None)
@@ -140,10 +142,13 @@ def collect_results_opt(results,timeframe):
     
        
 def collect_results(results,timeframe):
+    
     sharpe = results[0].analyzers.sharpe.get_analysis()
     drawdown = results[0].analyzers.drawdown.get_analysis()
     trades = results[0].analyzers.trades.get_analysis()
     rets = results[0].analyzers.returns.get_analysis()
+    
+    
     
     dict = {"sharpe":[sharpe["sharperatio"]],
                 "drawdown" : [drawdown["max"]["drawdown"]],
@@ -249,7 +254,7 @@ def CompareResults(all_results):
     return result
 
 
-def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode):
+def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode,save_mode=0):
     
     # get strategy id
     strategy_id  = strategy_obj.id
@@ -288,11 +293,18 @@ def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode):
         info = generate_payload(strategy_id,symbol=symbol, metrics=metrics, opt_mode=opt_mode)
         # for i in info.keys():
             # print(i)
-        database = db()
-        database.update_results(info)
+        if save_mode == 1:
+            database = db()
+            database.update_results(info)
+        else:
+            print(metrics)
         
 
     
     
+def display_results(results,tf):
+        final = collect_results(results,tf)
+        columns_to_print = ['net_profit', 'win_ratio','long_wins','long_losses','short_wins','short_losses']
+        print(tabulate(final[columns_to_print], headers='keys', tablefmt='psql'))
     
     

@@ -37,7 +37,7 @@ def get_symbols(asset_class='stock'):
     return symbols_list
 
 
-def process_symbol(symbol,strategy_id, asset_class='stock', opt_mode=1):
+def process_symbol(symbol,strategy_id, asset_class='stock', opt_mode=1,save_mode=0):
  
   if asset_class == 'crypto':
     periods = ['15m','30m', '45m', '1h','4h','1d']
@@ -66,20 +66,21 @@ def process_symbol(symbol,strategy_id, asset_class='stock', opt_mode=1):
     strategy.adddata(data)
     
     # run backtest for each timeframe for each symbol
-    backtest.getResults(symbol,strategy, timeframe,run_loop_done,opt_mode)    
+    backtest.getResults(symbol,strategy, timeframe,run_loop_done,opt_mode,save_mode)    
 
 
-def run_backtest(asset_class,strategy_id):
+def run_backtest(asset_class,strategy_id,save_mode):
     
     symbols = get_symbols(asset_class)
     if not symbols:
+        print(f"----No stocks found-----")
         exit()
     
     for symbol in symbols:
         
         print(f"----Starting run for {symbol}-----")
         try:
-            process_symbol(symbol,strategy_id,asset_class)
+            process_symbol(symbol,strategy_id,asset_class,save_mode)
             print(f"----Completed run for {symbol}-----")
         except Exception as e:
             print(f"!!!!!!Error completing run for {symbol}!!!!!!!!!")
@@ -90,8 +91,9 @@ if __name__ == "__main__":
     
     asset_class = 'crypto'
     strategy_id = 7
+    save_mode = 0
     
-    run_backtest(asset_class,strategy_id)
+    run_backtest(asset_class,strategy_id,save_mode)
     
     
     

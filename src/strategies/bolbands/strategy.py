@@ -3,20 +3,22 @@ from backtrader.indicators import BollingerBands
 
 class BaseStrategy(bt.Strategy):
   
-    params = (
+    
        
-        ('max_loss_p' , 1),
-        ('risk_reward', 9)
-          
+    params = (
+  ('period', 20),
+  ('devfactor', 2),
+  ('size', 0.001),
+  ('risk_reward', 2),
     )
-    id = None
+          
+   
  
     def __init__(self):
         
-        self.counter = 0
+        self.bb = bt.indicators.BollingerBands(self.data.close, period=self.params.period, devfactor=self.params.devfactor)
         self.order = None
-       
-        self.bb = BollingerBands(period=20, devfactor=2)
+        self.trades = []
         
         
     def log(self, txt, dt=None):
@@ -27,22 +29,15 @@ class BaseStrategy(bt.Strategy):
             print('%s, %s' % (dt.isoformat(), txt))
         
     def get_long_entry(self):
-      print(self.data.close[0])  
-      print(self.data.open[0])  
-       
-      print(self.bb.mid[0])  
-      dt = self.data.datetime[0]
-      dt = bt.num2date(dt)
-      print(dt.isoformat())
-      
-      if self.data.close[0]  > self.bb.mid[0]:                            
-        if self.data.open[0] < self.bb.mid[0]:
+           
+      if self.data.close[0]  > self.bb.lines.mid[0]:                            
+        if self.data.open[0] < self.bb.lines.mid[0]:
           return True
     
     def get_long_exit(self):
-      stop_price = self.execution_price*(1-self.params.max_loss_p/100)
-      if self.data.close[0] < stop_price:
-      # if self.data.close[0] < self.low:
+      
+      if self.data.close[0] < self.stop_price:
+      
         return True
       
       # target_price = self.execution_price*(1+ self.params.risk_reward/100)
@@ -50,38 +45,56 @@ class BaseStrategy(bt.Strategy):
         return True
     
     def get_short_entry(self):
-      print(self.data.close[0])  
-      print(self.bb.mid[0])  
-      print(self.data.open[0])  
       
-      dt = self.data.datetime[0]
-      dt = bt.num2date(dt)
-      print(dt.isoformat())
-      if self.data.close[0]  < self.bb.mid[0]  :  
-        if self.data.open[0] > self.bb.mid[0]:
+      if self.data.close[0]  < self.bb.lines.mid[0]  :  
+        if self.data.open[0] > self.bb.lines.mid[0]:
          
           return True
         
     
     def get_short_exit(self):
-      stop_price = self.execution_price *(1+self.params.max_loss_p/100)
-      if self.data.close[0] > stop_price:
-      # if self.data.close[0] > self.high:
+      
+      if self.data.close[0] > self.stop_price:
+      
         return True
       
       # target_price = self.execution_price*(1-self.params.risk_reward/100)
       if self.data.close[0] <= self.target_price:
         return True
       
-
+    def print_order(self,order):
+      # pass
+        print("Order ID:", order.ref)
+        print("Status:", order.getstatusname())
+        
+        print("Size:", order.size)
+        print("Price:", order.price)
+        print("Created at:", order.created)
+        # print("Executed at:", order.executed.dt if order.executed else "Not executed")
+        if order.executed:
+            print("Executed size:", order.executed.size)
+            print("Executed price:", order.executed.price)
+            print("Commission:", order.executed.comm)
+        
+        print("Pending:", order.isbuy() or order.issell())  # Check if the order is pending
+        # print("Link to the original order:", order.link)
+    
     def notify_order(self,order):
-      print(order.status)
-      if order.status in [order.Completed]:
-        if order.isbuy():
-          self.log('Buy executed at:{}'.format(order.executed.price))
+      
+      # self.print_order(order)
+      
+      if order.status in [order.Submitted, order.Accepted]:
+            return
+          
+      if order.status == order.Completed:
+        # print(order.status)
+        
+          
+        # if order.isbuy():
+        #   # self.log('Buy executed at:{}'.format(order.executed.price))
 
-        elif order.issell():
-          self.log('Sell executed at:{}'.format(order.executed.price))
+        # elif order.issell():
+          # self.log('Sell executed at:{}'.format(order.executed.price))
 
         self.bar_executed = len(self)
         self.execution_price = order.executed.price
@@ -90,40 +103,47 @@ class BaseStrategy(bt.Strategy):
         
         if order.isbuy():
           self.risk  = self.data.close[0]-self.data.low[0]
+          self.stop_price = self.data.low[0]
           self.target_price = self.execution_price + self.risk*self.params.risk_reward
+          # print(self.bar_executed)
+          # print(self.target_price)
         
         if order.issell():
           self.risk  = self.data.high[0]-self.data.close[0]
+          self.stop_price = self.data.high[0]
           self.target_price = self.execution_price - self.risk*self.params.risk_reward
-        # print('Position is {}'.format(self.position))
-        # print('Trade executed at bar {}'.format(self.bar_executed))
+          # print(self.bar_executed)
+          # print(self.target_price)
+        
 
       self.order = None
 
     def next(self):
-        # print(self.order)
-        # print(self.position)
-        # print(len(self))
+        
+        # current_date = self.data.datetime.date(0)  # This gets the date without time
+        # print(f'Current bar date: {current_date}')
         if self.order:
           return
         try:
           if not self.position:
             if self.get_long_entry():
-                self.order = self.buy()
-            
+                self.order = self.buy(price=self.data.close[0],size=0.006)
+                # self.log('Long trade executed')
             elif self.get_short_entry():
-                self.order = self.sell()
+                self.order = self.sell(price=self.data.close[0],size=0.006)
+                # self.log('Short trade executed')
           else:
             if self.position.size > 0:
                 if self.get_long_exit():
-                  self.close()
-                  
+                    # self.log('Exiting long trade')
+                    self.close()
             elif self.position.size < 0:
                 if self.get_short_exit():
-                  self.close()
+                    # self.log('Exiting short trade')
+                    self.close()
         except Exception as err:
-          pass
-          # print(f"Unexpected {err=}, {type(err)=}")
+          
+          print(f"Unexpected {err=}, {type(err)=}")
  
 
     
