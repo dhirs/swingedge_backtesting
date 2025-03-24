@@ -147,6 +147,7 @@ def collect_results(results,timeframe):
     drawdown = results[0].analyzers.drawdown.get_analysis()
     trades = results[0].analyzers.trades.get_analysis()
     rets = results[0].analyzers.returns.get_analysis()
+    transactions = results[0].analyzers.transactions.get_analysis()
     
     
     

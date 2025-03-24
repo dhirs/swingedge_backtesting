@@ -15,7 +15,7 @@ class BaseStrategy(bt.Strategy):
         
         self.counter = 0
         self.order = None
-       
+        self.trades = []
         self.macd = bt.indicators.MACD(self.data.close)
         self.mcross = bt.indicators.CrossOver(self.macd.macd, self.macd.signal)
         
@@ -25,7 +25,30 @@ class BaseStrategy(bt.Strategy):
         if isinstance(dt, float):
             dt = bt.num2date(dt)
         # print('%s, %s' % (dt.isoformat(), txt))
-        
+    
+    def notify_trade(self, trade):
+      pass
+        # if trade.isclosed:
+        #     # Gather trade information upon closing
+        #     trade_info = {
+        #         'entry_time': trade.open_datetime,  # Use strftime for readable format
+        #         'exit_time': trade.close_datetime,  # Use strftime for readable format
+        #         'entry_price': trade.price,  # Entry price of the trade
+        #         'exit_price': trade.close.price,  # Correctly reference the exit (close) price
+        #         'quantity': trade.size,  # Quantity of the trade
+        #         'profit_loss': trade.pnl  # Profit or loss from the trade
+        #     }
+        #     self.trades.append(trade_info)
+            
+            
+    
+    def stop(self):
+        # # Print all trades when the strategy stops
+        # print("\nList of all trades:")
+        # for trade in self.trades:
+        #     print(trade)
+        pass
+    
     def get_long_entry(self):
             
       if self.mcross[0] > 0.0:                                
@@ -87,9 +110,7 @@ class BaseStrategy(bt.Strategy):
       self.order = None
 
     def next(self):
-        # print(self.order)
-        # print(self.position)
-        # print(len(self))
+        
         if self.order:
           return
         try:
@@ -107,6 +128,7 @@ class BaseStrategy(bt.Strategy):
             elif self.position.size < 0:
                 if self.get_short_exit():
                   self.close()
+        
         except Exception as err:
           pass
           # print(f"Unexpected {err=}, {type(err)=}")

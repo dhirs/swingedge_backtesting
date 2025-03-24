@@ -10,6 +10,7 @@ class BaseStrategy(bt.Strategy):
   ('devfactor', 2),
   ('size', 0.001),
   ('risk_reward', 2),
+  ('size',0.005)
     )
           
    
@@ -127,10 +128,10 @@ class BaseStrategy(bt.Strategy):
         try:
           if not self.position:
             if self.get_long_entry():
-                self.order = self.buy(price=self.data.close[0],size=0.006)
+                self.order = self.buy(price=self.data.close[0],size=self.params.size)
                 # self.log('Long trade executed')
             elif self.get_short_entry():
-                self.order = self.sell(price=self.data.close[0],size=0.006)
+                self.order = self.sell(price=self.data.close[0],size=self.params.size)
                 # self.log('Short trade executed')
           else:
             if self.position.size > 0:

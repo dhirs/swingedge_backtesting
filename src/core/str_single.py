@@ -1,5 +1,6 @@
 import backtrader as bt
-from src.strategies.bolbands.strategy import BaseStrategy
+from src.strategies.macd_cross.strategy import BaseStrategy
+# from src.strategies.bolbands.strategy import BaseStrategy
 import src.core.run_test as backtest
 
 
