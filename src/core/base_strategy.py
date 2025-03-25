@@ -3,29 +3,20 @@ import backtrader as bt
 
 class BaseStrategy(bt.Strategy):
   
-    params = (
-       
-        ('max_loss_p' , 1),
-        ('risk_reward', 9),
-        ('size',0.005)
-          
-    )
-    id = None
- 
+    
     def __init__(self):
         
-        self.counter = 0
+        super().__init__()
         self.order = None
         self.trades = []
-        self.macd = bt.indicators.MACD(self.data.close)
-        self.mcross = bt.indicators.CrossOver(self.macd.macd, self.macd.signal)
+        
         
     def log(self, txt, dt=None):
         ''' Logging function fot this strategy'''
         dt = dt or self.data.datetime[0]
         if isinstance(dt, float):
             dt = bt.num2date(dt)
-        # print('%s, %s' % (dt.isoformat(), txt))
+        print('%s, %s' % (dt.isoformat(), txt))
     
     def notify_trade(self, trade):
       pass
@@ -52,36 +43,18 @@ class BaseStrategy(bt.Strategy):
     
     def get_long_entry(self):
             
-      if self.mcross[0] > 0.0:                                
-      # if self.macd.macd[0] > self.macd.signal[0]:
-        if self.macd.macd[0] < 0 and self.macd.signal[0] < 0:
-          return True
+      raise NotImplementedError("Subclasses should implement this!")
     
     def get_long_exit(self):
-      # stop_price = self.execution_price*(1-self.params.max_loss_p/100)
-      # if self.data.close[0] < stop_price:
-      if self.data.close[0] < self.low:
-        return True
       
-      # target_price = self.execution_price*(1+ self.params.risk_reward/100)
-      if self.data.close[0] >= self.target_price:
-        return True
+      raise NotImplementedError("Subclasses should implement this!")
     
     def get_short_entry(self):
-      if self.mcross[0] < 0.0:  
-        if self.macd.macd[0] > 0 and self.macd.signal[0] > 0:
-          return True
+      raise NotImplementedError("Subclasses should implement this!")
         
     
     def get_short_exit(self):
-      # stop_price = self.execution_price *(1+self.params.max_loss_p/100)
-      # if self.data.close[0] > stop_price:
-      if self.data.close[0] > self.high:
-        return True
-      
-      # target_price = self.execution_price*(1-self.params.risk_reward/100)
-      if self.data.close[0] <= self.target_price:
-        return True
+      raise NotImplementedError("Subclasses should implement this!")
       
 
     def notify_order(self,order):
@@ -97,16 +70,11 @@ class BaseStrategy(bt.Strategy):
         self.execution_price = order.executed.price
         self.low = self.data.low[0]
         self.high = self.data.high[0]
+        self.open = self.data.open[0]
+        self.close_price = self.data.close[0]
         
-        if order.isbuy():
-          self.risk  = self.data.close[0]-self.data.low[0]
-          self.target_price = self.execution_price + self.risk*self.params.risk_reward
-        
-        if order.issell():
-          self.risk  = self.data.high[0]-self.data.close[0]
-          self.target_price = self.execution_price - self.risk*self.params.risk_reward
-        # print('Position is {}'.format(self.position))
-        # print('Trade executed at bar {}'.format(self.bar_executed))
+        print('Position is {}'.format(self.position))
+        print('Trade executed at bar {}'.format(self.bar_executed))
 
       self.order = None
 
@@ -131,8 +99,8 @@ class BaseStrategy(bt.Strategy):
                   self.close()
         
         except Exception as err:
-          pass
-          # print(f"Unexpected {err=}, {type(err)=}")
+          
+          print(f"Unexpected {err=}, {type(err)=}")
  
 
     
