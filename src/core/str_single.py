@@ -1,11 +1,12 @@
 import backtrader as bt
-from src.strategies.macd_cross.rsi import SimpleMovingAverageStrategy
+from src.strategies.macd_cross.macd import MACDStrategy as Strategy
+# from src.strategies.sma.sma import SMAStrategy as Strategy
 # from src.strategies.bolbands.strategy import BaseStrategy
 import src.core.run_test as backtest
 
 
 strategy= bt.Cerebro() 
-strategy.addstrategy(SimpleMovingAverageStrategy)
+strategy.addstrategy(Strategy)
 
 asset_class = 'crypto'
 symbol = 'X:BTCUSD'

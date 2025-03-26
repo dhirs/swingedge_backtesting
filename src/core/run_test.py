@@ -142,16 +142,19 @@ def collect_results_opt(results,timeframe):
     
        
 def collect_results(results,timeframe):
+    try:
+        sharpe = results[0].analyzers.sharpe.get_analysis()
+        drawdown = results[0].analyzers.drawdown.get_analysis()
+        trades = results[0].analyzers.trades.get_analysis()
+        rets = results[0].analyzers.returns.get_analysis()
+        transactions = results[0].analyzers.transactions.get_analysis()
+        
+        n_trades = len(transactions)
+        if n_trades == 0 or n_trades == 1:
+            print("!!!!!!!!!!!Not enough transactions!!!!!!!!!!!")
+            return pd.DataFrame()
     
-    sharpe = results[0].analyzers.sharpe.get_analysis()
-    drawdown = results[0].analyzers.drawdown.get_analysis()
-    trades = results[0].analyzers.trades.get_analysis()
-    rets = results[0].analyzers.returns.get_analysis()
-    transactions = results[0].analyzers.transactions.get_analysis()
-    
-    
-    
-    dict = {"sharpe":[sharpe["sharperatio"]],
+        dict = {"sharpe":[sharpe["sharperatio"]],
                 "drawdown" : [drawdown["max"]["drawdown"]],
                 "return" : [rets['rnorm100']],
                 "won" : [trades["won"]["total"]],
@@ -171,7 +174,12 @@ def collect_results(results,timeframe):
                 "timeframe" : [timeframe]
                 }
         
-    df = pd.DataFrame.from_dict(dict)
+        df = pd.DataFrame.from_dict(dict)
+    
+    except Exception as err:
+        print(f"!!!!!!Error populating results for {timeframe}!!!!!!!!")
+        print(err)
+        return pd.DataFrame()
     
     return df
 
@@ -305,7 +313,11 @@ def getResults(symbol,strategy_obj, timeframe, run_loop_done,opt_mode,save_mode=
     
 def display_results(results,tf):
         final = collect_results(results,tf)
-        columns_to_print = ['net_profit', 'win_ratio','long_wins','long_losses','short_wins','short_losses']
-        print(tabulate(final[columns_to_print], headers='keys', tablefmt='psql'))
+        
+        if not final.empty:
+               
+            columns_to_print = ['net_profit', 'win_ratio','long_wins','long_losses','short_wins','short_losses']
+            print("Summary")
+            print(tabulate(final[columns_to_print], headers='keys', tablefmt='psql'))
     
     
